@@ -27,11 +27,19 @@ class PredictResponse(BaseModel):
     risk: int
     model_version: str
 
+    model_config = {
+        "protected_namespaces": (),
+    }
+
 
 class PredictionOut(BaseModel):
     id: str
     risk: int
     model_version: str
     created_at: str
+
+    model_config = {
+        "protected_namespaces": (),
+    }
 
 

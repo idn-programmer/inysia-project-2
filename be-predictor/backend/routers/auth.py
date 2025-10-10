@@ -8,7 +8,6 @@ from ..schemas.auth import UserSignup, UserLogin, AuthResponse
 from ..services.auth_service import (
     authenticate_user,
     create_access_token,
-    get_password_hash,
     verify_token,
     get_user_by_id
 )

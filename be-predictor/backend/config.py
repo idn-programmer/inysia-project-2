@@ -13,7 +13,7 @@ class Settings:
 
     def __init__(self) -> None:
         self.database_url = os.getenv(
-            "DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/diabetes"
+            "DATABASE_URL", "postgresql+psycopg://postgres:richie@localhost:5432/Diabetes"
         )
         self.model_path = os.getenv("MODEL_PATH", "./models/model.joblib")
         self.allowed_origins = [

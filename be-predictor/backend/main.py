@@ -2,19 +2,20 @@ from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from config import get_settings
-from db.session import engine, Base, SessionLocal
-from db import models as orm
-from services.ml_service import load_model
-from routers import predict as predict_router
-from routers import chat as chat_router
-from routers import health as health_router
-from routers import auth as auth_router
+from .config import get_settings
+from .db.session import engine, Base, SessionLocal
+from .db import models as orm
+from .services.ml_service import load_model
+from .routers import predict as predict_router
+from .routers import chat as chat_router
+from .routers import health as health_router
+from .routers import auth as auth_router
 
 
 load_dotenv()
@@ -23,6 +24,24 @@ load_dotenv()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup
+    # Log effective DB connection info (masked) to verify .env loading
+    try:
+        settings = get_settings()
+        db_url = settings.database_url
+        # mask password
+        masked = db_url
+        if "@" in db_url and "://" in db_url:
+            scheme_sep = db_url.split("://", 1)
+            creds_and_rest = scheme_sep[1]
+            if "@" in creds_and_rest and ":" in creds_and_rest.split("@", 1)[0]:
+                user = creds_and_rest.split(":", 1)[0]
+                rest_after_user = creds_and_rest.split(":", 1)[1]
+                if "@" in rest_after_user:
+                    rest = rest_after_user.split("@", 1)[1]
+                    masked = f"{scheme_sep[0]}://{user}:***@{rest}"
+        logging.info(f"Using DATABASE_URL: {masked}")
+    except Exception:
+        pass
     Base.metadata.create_all(bind=engine)
     # seed guest user (id=1) if not present for anonymous predictions linkage
     db = SessionLocal()
