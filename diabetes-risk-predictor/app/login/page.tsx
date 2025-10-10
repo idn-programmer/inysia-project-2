@@ -8,27 +8,28 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { InputField } from "@/components/input-field"
+import { useUser } from "@/lib/user-context"
 
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState("")
+  const { login } = useUser()
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: email, password }),
-    })
-    if (res.ok) {
-      const name = (email.split("@")[0] || "User").replace(/\W+/g, " ")
-      localStorage.setItem("userName", name)
-      localStorage.setItem("userEmail", email)
+    setIsLoading(true)
+    setError("")
+    
+    try {
+      await login(username, password)
       router.push("/dashboard")
-    } else {
-      const data = await res.json().catch(() => ({}))
-      alert(data?.detail || "Login failed")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -37,8 +38,20 @@ export default function LoginPage() {
       <Navbar />
       <main className="mx-auto max-w-lg px-4 py-10">
         <h1 className="text-3xl font-semibold mb-6">Log In</h1>
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
         <form onSubmit={onSubmit} className="grid gap-4">
-          <InputField label="Email" name="email" type="email" value={email} onChange={setEmail} required />
+          <InputField 
+            label="Username" 
+            name="username" 
+            type="text" 
+            value={username} 
+            onChange={setUsername} 
+            required 
+          />
           <InputField
             label="Password"
             name="password"
@@ -49,10 +62,11 @@ export default function LoginPage() {
           />
           <button
             type="submit"
-            className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold"
+            disabled={isLoading}
+            className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold disabled:opacity-50"
             aria-label="Log in"
           >
-            Log In
+            {isLoading ? "Logging in..." : "Log In"}
           </button>
         </form>
         <p className="mt-4">

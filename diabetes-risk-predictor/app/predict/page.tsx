@@ -6,25 +6,12 @@ import { useEffect, useMemo, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { InputField, SelectField, ToggleField } from "@/components/input-field"
-
-type PredictForm = {
-  age: number | ""
-  gender: "Male" | "Female"
-  pulseRate: number | ""
-  sbp: number | ""
-  dbp: number | ""
-  glucose: number | ""
-  heightCm: number | ""
-  weightKg: number | ""
-  bmi: number | ""
-  familyDiabetes: boolean
-  hypertensive: boolean
-  familyHypertension: boolean
-  cardiovascular: boolean
-  stroke: boolean
-}
+import { apiClient } from "@/lib/api"
+import { useUser } from "@/lib/user-context"
+import { PredictForm } from "@/lib/types"
 
 export default function PredictPage() {
+  const { user } = useUser()
   const [form, setForm] = useState<PredictForm>({
     age: "",
     gender: "Male",
@@ -42,6 +29,8 @@ export default function PredictPage() {
     stroke: false,
   })
   const [result, setResult] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const autoBmi = useMemo(() => {
     const h = Number(form.heightCm)
@@ -59,18 +48,36 @@ export default function PredictPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const res = await fetch("/api/predict", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, bmi: Number(form.bmi || autoBmi || 0) }),
-    })
-    const data = await res.json()
-    setResult(data.risk)
-    // Save to history
-    const history = JSON.parse(localStorage.getItem("predHistory") || "[]")
-    const entry = { date: new Date().toISOString(), risk: data.risk, inputs: form }
-    localStorage.setItem("predHistory", JSON.stringify([entry, ...history].slice(0, 50)))
-    localStorage.setItem("lastRisk", String(data.risk))
+    setIsLoading(true)
+    setError("")
+    
+    try {
+      const requestData = {
+        age: form.age === "" ? undefined : Number(form.age),
+        gender: form.gender,
+        pulseRate: form.pulseRate === "" ? undefined : Number(form.pulseRate),
+        sbp: form.sbp === "" ? undefined : Number(form.sbp),
+        dbp: form.dbp === "" ? undefined : Number(form.dbp),
+        glucose: form.glucose === "" ? undefined : Number(form.glucose),
+        heightCm: form.heightCm === "" ? undefined : Number(form.heightCm),
+        weightKg: form.weightKg === "" ? undefined : Number(form.weightKg),
+        bmi: form.bmi === "" ? (autoBmi === "" ? undefined : Number(autoBmi)) : Number(form.bmi),
+        familyDiabetes: form.familyDiabetes,
+        hypertensive: form.hypertensive,
+        familyHypertension: form.familyHypertension,
+        cardiovascular: form.cardiovascular,
+        stroke: form.stroke,
+        userId: user?.id,
+      }
+
+      const data = await apiClient.predict(requestData)
+      setResult(data.risk)
+      localStorage.setItem("lastRisk", String(data.risk))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Prediction failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const resultColor = result == null ? "" : result < 33 ? "text-success" : result < 66 ? "text-warning" : "text-danger"
@@ -80,6 +87,11 @@ export default function PredictPage() {
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 py-8">
         <h1 className="text-3xl font-semibold mb-6">Check Your Diabetes Risk</h1>
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
         <form onSubmit={onSubmit} className="grid gap-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <InputField
@@ -185,10 +197,11 @@ export default function PredictPage() {
           </div>
           <button
             type="submit"
-            className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold"
+            disabled={isLoading}
+            className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold disabled:opacity-50"
             aria-label="Predict My Risk"
           >
-            Predict My Risk
+            {isLoading ? "Predicting..." : "Predict My Risk"}
           </button>
         </form>
 

@@ -4,14 +4,19 @@ import { useEffect, useRef, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ChatMessage } from "@/components/chat-message"
+import { apiClient } from "@/lib/api"
+import { useUser } from "@/lib/user-context"
+import { ChatMessageIn } from "@/lib/types"
 
 type Msg = { role: "user" | "assistant"; content: string }
 
 export default function ChatPage() {
+  const { user } = useUser()
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: "Hello! Ask me anything about your results or healthy habits." },
   ])
   const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -19,17 +24,33 @@ export default function ChatPage() {
   }, [messages])
 
   async function send() {
-    if (!input.trim()) return
+    if (!input.trim() || isLoading) return
+    
     const userMsg: Msg = { role: "user", content: input }
     setMessages((m) => [...m, userMsg])
     setInput("")
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: [...messages, userMsg] }),
-    })
-    const data = await res.json()
-    setMessages((m) => [...m, { role: "assistant", content: data.reply }])
+    setIsLoading(true)
+    
+    try {
+      const chatMessages: ChatMessageIn[] = [...messages, userMsg].map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
+      
+      const data = await apiClient.chat({
+        messages: chatMessages,
+        userId: user?.id
+      })
+      
+      setMessages((m) => [...m, { role: "assistant", content: data.reply }])
+    } catch (error) {
+      setMessages((m) => [...m, { 
+        role: "assistant", 
+        content: "Sorry, I encountered an error. Please try again." 
+      }])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -58,11 +79,12 @@ export default function ChatPage() {
               aria-label="Type your message"
             />
             <button
-              className="rounded-lg bg-primary px-5 py-3 text-primary-foreground font-semibold"
+              className="rounded-lg bg-primary px-5 py-3 text-primary-foreground font-semibold disabled:opacity-50"
               onClick={send}
+              disabled={isLoading}
               aria-label="Send message"
             >
-              Send
+              {isLoading ? "Sending..." : "Send"}
             </button>
           </div>
         </div>

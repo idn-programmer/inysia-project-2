@@ -8,32 +8,35 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { InputField } from "@/components/input-field"
+import { useUser } from "@/lib/user-context"
 
 export default function SignupPage() {
   const router = useRouter()
-  const [name, setName] = useState("")
+  const { signup } = useUser()
+  const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirm, setConfirm] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (password !== confirm) {
-      alert("Passwords do not match")
+      setError("Passwords do not match")
       return
     }
-    const res = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: email, email, password }),
-    })
-    if (res.ok) {
-      localStorage.setItem("userName", name || "User")
-      localStorage.setItem("userEmail", email)
+    
+    setIsLoading(true)
+    setError("")
+    
+    try {
+      await signup(username, email, password)
       router.push("/dashboard")
-    } else {
-      const data = await res.json().catch(() => ({}))
-      alert(data?.detail || "Signup failed")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Signup failed")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -42,9 +45,27 @@ export default function SignupPage() {
       <Navbar />
       <main className="mx-auto max-w-lg px-4 py-10">
         <h1 className="text-3xl font-semibold mb-6">Sign Up</h1>
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
         <form onSubmit={onSubmit} className="grid gap-4">
-          <InputField label="Name" name="name" value={name} onChange={setName} required />
-          <InputField label="Email" name="email" type="email" value={email} onChange={setEmail} required />
+          <InputField 
+            label="Username" 
+            name="username" 
+            value={username} 
+            onChange={setUsername} 
+            required 
+          />
+          <InputField 
+            label="Email" 
+            name="email" 
+            type="email" 
+            value={email} 
+            onChange={setEmail} 
+            required 
+          />
           <InputField
             label="Password"
             name="password"
@@ -63,10 +84,11 @@ export default function SignupPage() {
           />
           <button
             type="submit"
-            className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold"
+            disabled={isLoading}
+            className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold disabled:opacity-50"
             aria-label="Create account"
           >
-            Create Account
+            {isLoading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
         <p className="mt-4">

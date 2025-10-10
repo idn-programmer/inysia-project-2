@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Home, Activity, History, MessageSquare, User } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { Home, Activity, History, MessageSquare, User, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useUser } from "@/lib/user-context"
 
 const links = [
   { href: "/dashboard", label: "Predict", icon: Activity },
@@ -14,6 +15,14 @@ const links = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, logout, isAuthenticated } = useUser()
+
+  const handleLogout = () => {
+    logout()
+    router.push("/")
+  }
+
   return (
     <nav
       aria-label="Main navigation"
@@ -29,25 +38,56 @@ export function Navbar() {
           <span className="font-semibold">Diabetes Risk Predictor</span>
         </Link>
         <div className="ml-auto flex items-center gap-1">
-          {links.map((l) => {
-            const Icon = l.icon
-            const active = pathname === l.href
-            return (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm md:text-base",
-                  active ? "bg-primary text-primary-foreground" : "hover:bg-muted",
-                )}
-                aria-current={active ? "page" : undefined}
-                aria-label={l.label}
+          {isAuthenticated && (
+            <>
+              <span className="text-sm text-muted-foreground hidden sm:inline">
+                Welcome, {user?.username}
+              </span>
+              {links.map((l) => {
+                const Icon = l.icon
+                const active = pathname === l.href
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm md:text-base",
+                      active ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+                    )}
+                    aria-current={active ? "page" : undefined}
+                    aria-label={l.label}
+                  >
+                    <Icon className="size-5" aria-hidden="true" />
+                    <span className="hidden sm:inline">{l.label}</span>
+                  </Link>
+                )
+              })}
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm md:text-base hover:bg-muted"
+                aria-label="Logout"
               >
-                <Icon className="size-5" aria-hidden="true" />
-                <span className="hidden sm:inline">{l.label}</span>
+                <LogOut className="size-5" aria-hidden="true" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </>
+          )}
+          {!isAuthenticated && (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted"
+              >
+                Login
               </Link>
-            )
-          })}
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Sign Up
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </nav>

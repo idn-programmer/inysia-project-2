@@ -3,14 +3,14 @@
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { useUser } from "@/lib/user-context"
 import { useEffect, useState } from "react"
 
 export default function DashboardPage() {
-  const [name, setName] = useState<string>("")
+  const { user } = useUser()
   const [lastRisk, setLastRisk] = useState<number | null>(null)
 
   useEffect(() => {
-    setName(localStorage.getItem("userName") || "User")
     const lr = localStorage.getItem("lastRisk")
     setLastRisk(lr ? Number(lr) : null)
   }, [])
@@ -19,7 +19,7 @@ export default function DashboardPage() {
     <div className="min-h-dvh bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="text-3xl font-semibold mb-2">Welcome, {name ? name : "User"}!</h1>
+        <h1 className="text-3xl font-semibold mb-2">Welcome, {user?.username || "User"}!</h1>
         <p className="text-muted-foreground mb-8">Choose an option to get started.</p>
 
         {lastRisk !== null && (
