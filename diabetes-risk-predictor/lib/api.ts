@@ -37,7 +37,21 @@ class ApiClient {
   }
 
   async getHistory(limit: number = 50): Promise<PredictionOut[]> {
-    return this.request<PredictionOut[]>(`/history?limit=${limit}`);
+    // Use Next.js API route for proper SSR support
+    const response = await fetch(`/api/history?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || `HTTP ${response.status}`);
+    }
+
+    return data;
   }
 
   async chat(data: ChatRequest): Promise<ChatResponse> {

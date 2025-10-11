@@ -68,7 +68,7 @@ def predict(
     token = get_token_from_header(authorization)
     if token:
         try:
-            current_user = get_current_user(db, token)
+            current_user = get_current_user(token, db)
         except HTTPException:
             # If token is invalid, continue without user
             pass
@@ -109,7 +109,7 @@ def history(
     token = get_token_from_header(authorization)
     if token:
         try:
-            current_user = get_current_user(db, token)
+            current_user = get_current_user(token, db)
             q = q.filter(orm.Prediction.user_id == current_user.id)
         except HTTPException:
             pass
