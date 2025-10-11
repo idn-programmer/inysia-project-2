@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { useUser } from "@/lib/user-context"
 
 const links = [
-  { href: "/dashboard", label: "Predict", icon: Activity },
+  { href: "/predict", label: "Predict", icon: Activity },
   { href: "/history", label: "History", icon: History },
   { href: "/chat", label: "AI Assistant", icon: MessageSquare },
   { href: "/profile", label: "Profile", icon: User },
@@ -40,9 +40,12 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-1">
           {isAuthenticated && (
             <>
-              <span className="text-sm text-muted-foreground hidden sm:inline">
-                Welcome, {user?.username}
-              </span>
+              <Link
+                href="/dashboard"
+                className="text-sm text-muted-foreground hover:text-foreground hidden sm:inline px-2 py-1 rounded hover:bg-muted transition-colors"
+              >
+                Dashboard
+              </Link>
               {links.map((l) => {
                 const Icon = l.icon
                 const active = pathname === l.href

@@ -127,6 +127,7 @@ export default function ChatPage() {
                 <p className="text-sm text-muted-foreground">Top Risk Factors</p>
                 <p className="text-sm font-medium">
                   {Object.entries(predictionContext.shap_values)
+                    .filter(([key]) => key !== 'age' && key !== 'gender')
                     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
                     .slice(0, 3)
                     .map(([key]) => key)

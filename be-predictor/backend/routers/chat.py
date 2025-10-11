@@ -34,8 +34,9 @@ def generate_personalized_recommendations(prediction_context) -> str:
     recommendations = [risk_msg]
     recommendations.append("\n**Key Risk Factors:**")
     
-    # Analyze top 5 contributing factors
-    top_factors = sorted_factors[:5]
+    # Analyze top 5 contributing factors (excluding age and gender)
+    filtered_factors = [(f, c) for f, c in sorted_factors if f not in ['age', 'gender']]
+    top_factors = filtered_factors[:5]
     
     for factor, contribution in top_factors:
         if abs(contribution) < 0.01:  # Skip negligible contributions
@@ -68,12 +69,6 @@ def generate_personalized_recommendations(prediction_context) -> str:
                 recommendations.append("  - Practice stress management techniques")
                 recommendations.append("  - Monitor blood pressure regularly")
                 recommendations.append("  - Ensure adequate potassium intake (fruits, vegetables)")
-        
-        elif factor == "age":
-            recommendations.append(f"\n• **Age** ({value} years) - Natural risk factor (+{contribution:.2f})")
-            recommendations.append("  - Regular health screenings become more important with age")
-            recommendations.append("  - Stay physically active to maintain metabolic health")
-            recommendations.append("  - Consider annual diabetes screening")
         
         elif factor == "familyDiabetes" or factor == "family_diabetes":
             if value:

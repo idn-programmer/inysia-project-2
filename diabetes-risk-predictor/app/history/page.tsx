@@ -68,13 +68,12 @@ export default function HistoryPage() {
               <tr>
                 <th className="px-4 py-3 text-left">Date</th>
                 <th className="px-4 py-3 text-left">Result (%)</th>
-                <th className="px-4 py-3 text-left">Model</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="px-4 py-4 text-muted-foreground">
+                  <td colSpan={2} className="px-4 py-4 text-muted-foreground">
                     No history yet.
                   </td>
                 </tr>
@@ -83,9 +82,6 @@ export default function HistoryPage() {
                 <tr key={idx} className="border-t border-border">
                   <td className="px-4 py-3">{new Date(it.created_at).toLocaleString()}</td>
                   <td className="px-4 py-3">{it.risk}%</td>
-                  <td className="px-4 py-3">
-                    <span className="text-sm text-muted-foreground">Model: {it.model_version}</span>
-                  </td>
                 </tr>
               ))}
             </tbody>

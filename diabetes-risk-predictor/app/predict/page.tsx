@@ -77,13 +77,15 @@ export default function PredictPage() {
       setResult(data)
       localStorage.setItem("lastRisk", String(data.risk))
       
-      // Store prediction data for chatbot
+      // Store prediction data for chatbot (excluding age and gender)
+      const filteredShapValues = Object.fromEntries(
+        Object.entries(data.shap_values || {}).filter(([key]) => key !== 'age' && key !== 'gender')
+      )
+      
       const predictionContext = {
         risk_score: data.risk,
-        shap_values: data.shap_values || {},
+        shap_values: filteredShapValues,
         features: {
-          age: requestData.age,
-          gender: requestData.gender,
           glucose: requestData.glucose,
           bmi: requestData.bmi,
           sbp: requestData.sbp,
@@ -119,7 +121,6 @@ export default function PredictPage() {
     const featureLabels: Record<string, string> = {
       glucose: "Glucose",
       bmi: "BMI",
-      age: "Age",
       sbp: "Systolic BP",
       dbp: "Diastolic BP",
       pulseRate: "Pulse Rate",
@@ -128,13 +129,13 @@ export default function PredictPage() {
       familyHypertension: "Family Hypertension",
       cardiovascular: "Cardiovascular",
       stroke: "Stroke",
-      gender: "Gender",
       heightCm: "Height",
       weightKg: "Weight"
     }
     
-    // Convert SHAP values to chart data, filter out very small values
+    // Convert SHAP values to chart data, filter out age, gender, and very small values
     const data = Object.entries(result.shap_values)
+      .filter(([key]) => key !== 'age' && key !== 'gender') // Exclude age and gender
       .map(([key, value]) => ({
         name: featureLabels[key] || key,
         contribution: Number(value.toFixed(3)),
