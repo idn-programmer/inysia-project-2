@@ -15,7 +15,7 @@ class Settings:
         self.database_url = os.getenv(
             "DATABASE_URL", "postgresql+psycopg://postgres:richie@localhost:5432/Diabetes"
         )
-        self.model_path = os.getenv("MODEL_PATH", "./models/model.joblib")
+        self.model_path = os.getenv("MODEL_PATH", "./backend/models/model.joblib")
         self.allowed_origins = [
             origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if origin.strip()
         ]

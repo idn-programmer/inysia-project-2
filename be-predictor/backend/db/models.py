@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Integer, Float
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Integer, Float, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .session import Base
@@ -41,6 +41,7 @@ class Prediction(Base):
     cardiovascular_disease: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
     stroke: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
     risk_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    shap_values: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     user: Mapped[User] = relationship("User", back_populates="predictions")

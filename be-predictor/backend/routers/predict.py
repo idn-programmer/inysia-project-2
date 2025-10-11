@@ -20,12 +20,12 @@ def _normalize(req: PredictRequest) -> dict:
     features = {
         "age": req.age,
         "gender": req.gender,
-        "pulse_rate": req.pulseRate,
-        "systolic_bp": req.sbp,
-        "diastolic_bp": req.dbp,
+        "pulseRate": req.pulseRate,
+        "sbp": req.sbp,
+        "dbp": req.dbp,
         "glucose": req.glucose,
-        "height_cm": req.heightCm,
-        "weight_kg": req.weightKg,
+        "heightCm": req.heightCm,
+        "weightKg": req.weightKg,
         "bmi": req.bmi,
         "familyDiabetes": req.familyDiabetes,
         "hypertensive": req.hypertensive,
@@ -61,7 +61,7 @@ def predict(
     authorization: Optional[str] = Header(None)
 ):
     features = _normalize(payload)
-    risk, version = ml_predict(features)
+    risk, version, shap_values, global_importance = ml_predict(features)
 
     # Get current user if token is provided
     current_user = None
@@ -91,10 +91,16 @@ def predict(
         cardiovascular_disease=payload.cardiovascular or False,
         stroke=payload.stroke or False,
         risk_score=risk,
+        shap_values=shap_values,
     )
     db.add(pred)
     db.commit()
-    return PredictResponse(risk=risk, model_version=version)
+    return PredictResponse(
+        risk=risk, 
+        model_version=version,
+        shap_values=shap_values,
+        global_importance=global_importance
+    )
 
 
 @router.get("/history", response_model=List[PredictionOut])

@@ -44,6 +44,8 @@ export interface PredictRequest {
 export interface PredictResponse {
   risk: number;
   model_version: string;
+  shap_values: Record<string, number>;
+  global_importance: Record<string, number>;
 }
 
 export interface PredictionOut {
@@ -58,10 +60,17 @@ export interface ChatMessageIn {
   content: string;
 }
 
+export interface PredictionContext {
+  risk_score: number;
+  shap_values: Record<string, number>;
+  features: Record<string, any>;
+}
+
 export interface ChatRequest {
   messages: ChatMessageIn[];
   userId?: number;
   threadId?: number;
+  prediction_context?: PredictionContext;
 }
 
 export interface ChatResponse {

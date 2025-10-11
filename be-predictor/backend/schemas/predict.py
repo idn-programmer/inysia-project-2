@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Dict
 from uuid import UUID
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,8 @@ class PredictRequest(BaseModel):
 class PredictResponse(BaseModel):
     risk: int
     model_version: str
+    shap_values: Dict[str, float] = Field(default_factory=dict)  # Individual SHAP contributions
+    global_importance: Dict[str, float] = Field(default_factory=dict)  # Overall feature importance
 
     model_config = {
         "protected_namespaces": (),

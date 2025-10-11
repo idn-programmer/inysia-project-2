@@ -3,14 +3,17 @@
 import type React from "react"
 
 import { useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { InputField, SelectField, ToggleField } from "@/components/input-field"
 import { apiClient } from "@/lib/api"
 import { useUser } from "@/lib/user-context"
-import { PredictForm } from "@/lib/types"
+import { PredictForm, PredictResponse } from "@/lib/types"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 
 export default function PredictPage() {
+  const router = useRouter()
   const { user } = useUser()
   const [form, setForm] = useState<PredictForm>({
     age: "",
@@ -28,7 +31,7 @@ export default function PredictPage() {
     cardiovascular: false,
     stroke: false,
   })
-  const [result, setResult] = useState<number | null>(null)
+  const [result, setResult] = useState<PredictResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -71,8 +74,31 @@ export default function PredictPage() {
       }
 
       const data = await apiClient.predict(requestData)
-      setResult(data.risk)
+      setResult(data)
       localStorage.setItem("lastRisk", String(data.risk))
+      
+      // Store prediction data for chatbot
+      const predictionContext = {
+        risk_score: data.risk,
+        shap_values: data.shap_values || {},
+        features: {
+          age: requestData.age,
+          gender: requestData.gender,
+          glucose: requestData.glucose,
+          bmi: requestData.bmi,
+          sbp: requestData.sbp,
+          dbp: requestData.dbp,
+          pulseRate: requestData.pulseRate,
+          familyDiabetes: requestData.familyDiabetes,
+          hypertensive: requestData.hypertensive,
+          familyHypertension: requestData.familyHypertension,
+          cardiovascular: requestData.cardiovascular,
+          stroke: requestData.stroke,
+          heightCm: requestData.heightCm,
+          weightKg: requestData.weightKg,
+        }
+      }
+      localStorage.setItem("predictionContext", JSON.stringify(predictionContext))
     } catch (err) {
       setError(err instanceof Error ? err.message : "Prediction failed")
     } finally {
@@ -80,7 +106,46 @@ export default function PredictPage() {
     }
   }
 
-  const resultColor = result == null ? "" : result < 33 ? "text-success" : result < 66 ? "text-warning" : "text-danger"
+  const handleAskAI = () => {
+    router.push('/chat')
+  }
+
+  const resultColor = result == null ? "" : result.risk < 33 ? "text-green-600" : result.risk < 66 ? "text-yellow-600" : "text-red-600"
+
+  // Prepare SHAP chart data
+  const shapChartData = useMemo(() => {
+    if (!result || !result.shap_values) return []
+    
+    const featureLabels: Record<string, string> = {
+      glucose: "Glucose",
+      bmi: "BMI",
+      age: "Age",
+      sbp: "Systolic BP",
+      dbp: "Diastolic BP",
+      pulseRate: "Pulse Rate",
+      familyDiabetes: "Family Diabetes",
+      hypertensive: "Hypertensive",
+      familyHypertension: "Family Hypertension",
+      cardiovascular: "Cardiovascular",
+      stroke: "Stroke",
+      gender: "Gender",
+      heightCm: "Height",
+      weightKg: "Weight"
+    }
+    
+    // Convert SHAP values to chart data, filter out very small values
+    const data = Object.entries(result.shap_values)
+      .map(([key, value]) => ({
+        name: featureLabels[key] || key,
+        contribution: Number(value.toFixed(3)),
+        fill: value > 0 ? '#ef4444' : '#10b981' // red for positive, green for negative
+      }))
+      .filter(item => Math.abs(item.contribution) > 0.001) // Filter negligible values
+      .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
+      .slice(0, 7) // Top 7 factors
+    
+    return data
+  }, [result])
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -206,16 +271,51 @@ export default function PredictPage() {
         </form>
 
         {result != null && (
-          <div className="mt-8 rounded-xl border border-border p-6 bg-card">
-            <p className="text-2xl font-semibold">
-              Your predicted risk is{" "}
-              <span className={resultColor} aria-live="polite" aria-atomic="true">
-                {result}%
-              </span>
-            </p>
-            <p className="mt-3 text-muted-foreground">
-              Remember, maintaining healthy diet and exercise can reduce risk.
-            </p>
+          <div className="mt-8 space-y-6">
+            <div className="rounded-xl border border-border p-6 bg-card">
+              <p className="text-2xl font-semibold">
+                Your predicted risk is{" "}
+                <span className={resultColor} aria-live="polite" aria-atomic="true">
+                  {result.risk}%
+                </span>
+              </p>
+              <p className="mt-3 text-muted-foreground">
+                Remember, maintaining healthy diet and exercise can reduce risk.
+              </p>
+            </div>
+
+            {shapChartData.length > 0 && (
+              <div className="rounded-xl border border-border p-6 bg-card">
+                <h2 className="text-xl font-semibold mb-4">Risk Factor Analysis</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  These factors contribute most to your risk score. Red bars increase risk, green bars decrease it.
+                </p>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={shapChartData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" label={{ value: 'Contribution', position: 'insideBottom', offset: -5 }} />
+                    <YAxis type="category" dataKey="name" />
+                    <Tooltip 
+                      formatter={(value: number) => [`${value > 0 ? '+' : ''}${value.toFixed(3)}`, 'Impact']}
+                      contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                    />
+                    <Bar dataKey="contribution" radius={[0, 8, 8, 0]}>
+                      {shapChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            <button
+              onClick={handleAskAI}
+              className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 px-6 py-4 text-white font-semibold transition-colors"
+              aria-label="Ask AI about my results"
+            >
+              💬 Ask AI About My Results
+            </button>
           </div>
         )}
       </main>
