@@ -39,63 +39,144 @@ def generate_personalized_recommendations(prediction_context) -> str:
     top_factors = filtered_factors[:5]
     
     for factor, contribution in top_factors:
-        if abs(contribution) < 0.01:  # Skip negligible contributions
+        if abs(contribution) < 0.001:  # Skip negligible contributions
             continue
             
         direction = "increasing" if contribution > 0 else "decreasing"
         value = features.get(factor, "N/A")
         
         # Generate specific recommendations based on factor
+        contribution_sign = "+" if contribution > 0 else ""
+        
         if factor == "glucose":
+            recommendations.append(f"\n• **Glucose** ({value} mg/dL) - {contribution_sign}{contribution:.2f}")
             if contribution > 0:
-                recommendations.append(f"\n• **Glucose** ({value} mg/dL) - Major contributor (+{contribution:.2f})")
                 recommendations.append("  - Monitor your blood sugar regularly")
                 recommendations.append("  - Reduce intake of refined carbohydrates and sugary foods")
                 recommendations.append("  - Consider eating more fiber-rich foods")
-                recommendations.append("  - Stay hydrated with water throughout the day")
+            else:
+                recommendations.append("  - Your glucose level is helping reduce risk")
+                recommendations.append("  - Continue maintaining healthy blood sugar levels")
         
         elif factor == "bmi":
+            recommendations.append(f"\n• **BMI** ({value}) - {contribution_sign}{contribution:.2f}")
             if contribution > 0:
-                recommendations.append(f"\n• **BMI** ({value}) - Contributing factor (+{contribution:.2f})")
                 recommendations.append("  - Aim for gradual, sustainable weight loss")
                 recommendations.append("  - Incorporate regular physical activity (aim for 150 min/week)")
                 recommendations.append("  - Focus on portion control and balanced meals")
-                recommendations.append("  - Consider consulting a nutritionist for personalized guidance")
+            else:
+                recommendations.append("  - Your BMI is in a good range")
+                recommendations.append("  - Continue maintaining healthy weight")
         
         elif factor in ["sbp", "systolic_bp"]:
+            recommendations.append(f"\n• **Systolic Blood Pressure** ({value} mmHg) - {contribution_sign}{contribution:.2f}")
             if contribution > 0:
-                recommendations.append(f"\n• **Blood Pressure** ({value} mmHg) - Contributing factor (+{contribution:.2f})")
                 recommendations.append("  - Reduce sodium intake (limit processed foods)")
                 recommendations.append("  - Practice stress management techniques")
                 recommendations.append("  - Monitor blood pressure regularly")
-                recommendations.append("  - Ensure adequate potassium intake (fruits, vegetables)")
+            else:
+                recommendations.append("  - Your blood pressure is helping reduce risk")
+                recommendations.append("  - Keep monitoring regularly")
+        
+        elif factor in ["dbp", "diastolic_bp"]:
+            recommendations.append(f"\n• **Diastolic Blood Pressure** ({value} mmHg) - {contribution_sign}{contribution:.2f}")
+            if contribution > 0:
+                recommendations.append("  - Monitor blood pressure regularly")
+                recommendations.append("  - Reduce salt intake and manage stress")
+            else:
+                recommendations.append("  - Your diastolic pressure is in good range")
+        
+        elif factor == "pulseRate":
+            recommendations.append(f"\n• **Pulse Rate** ({value} bpm) - {contribution_sign}{contribution:.2f}")
+            if contribution > 0:
+                recommendations.append("  - Regular cardiovascular exercise can help")
+                recommendations.append("  - Consider stress reduction techniques")
+            else:
+                recommendations.append("  - Your pulse rate is healthy")
         
         elif factor == "familyDiabetes" or factor == "family_diabetes":
-            if value:
-                recommendations.append(f"\n• **Family History of Diabetes** - Contributing factor (+{contribution:.2f})")
-                recommendations.append("  - Genetic predisposition increases risk")
-                recommendations.append("  - Focus on modifiable risk factors (diet, exercise, weight)")
-                recommendations.append("  - Regular screening is especially important for you")
+            recommendations.append(f"\n• **Family History of Diabetes** - {contribution_sign}{contribution:.2f}")
+            recommendations.append("  - Genetic predisposition increases risk")
+            recommendations.append("  - Focus on modifiable risk factors (diet, exercise, weight)")
+            recommendations.append("  - Regular screening is especially important for you")
         
         elif factor == "hypertensive":
+            recommendations.append(f"\n• **Hypertension** - {contribution_sign}{contribution:.2f}")
             if value:
-                recommendations.append(f"\n• **Hypertension** - Contributing factor (+{contribution:.2f})")
                 recommendations.append("  - Manage blood pressure through medication and lifestyle")
                 recommendations.append("  - Reduce salt and alcohol intake")
                 recommendations.append("  - Regular monitoring is essential")
+            else:
+                recommendations.append("  - Not having hypertension helps reduce risk")
+        
+        elif factor == "familyHypertension" or factor == "family_hypertension":
+            recommendations.append(f"\n• **Family History of Hypertension** - {contribution_sign}{contribution:.2f}")
+            if value:
+                recommendations.append("  - Monitor your blood pressure regularly")
+                recommendations.append("  - Maintain heart-healthy lifestyle")
+            else:
+                recommendations.append("  - No family history of hypertension is favorable")
         
         elif factor == "cardiovascular":
+            recommendations.append(f"\n• **Cardiovascular Disease** - {contribution_sign}{contribution:.2f}")
             if value:
-                recommendations.append(f"\n• **Cardiovascular Disease** - Contributing factor (+{contribution:.2f})")
                 recommendations.append("  - Heart health and diabetes are closely linked")
                 recommendations.append("  - Follow your cardiologist's recommendations")
                 recommendations.append("  - Maintain a heart-healthy diet")
+            else:
+                recommendations.append("  - No cardiovascular disease helps reduce risk")
         
-        elif factor == "weightKg" or factor == "weight":
+        elif factor == "stroke":
+            recommendations.append(f"\n• **Stroke History** - {contribution_sign}{contribution:.2f}")
+            if value:
+                recommendations.append("  - Continue following your doctor's recommendations")
+                recommendations.append("  - Manage all cardiovascular risk factors")
+            else:
+                recommendations.append("  - No stroke history is favorable")
+        
+        elif factor in ["weightKg", "weight"]:
+            recommendations.append(f"\n• **Weight** ({value} kg) - {contribution_sign}{contribution:.2f}")
             if contribution > 0:
-                recommendations.append(f"\n• **Weight** ({value} kg) - Contributing factor (+{contribution:.2f})")
                 recommendations.append("  - Even a 5-10% weight loss can significantly reduce diabetes risk")
                 recommendations.append("  - Focus on sustainable lifestyle changes")
+            else:
+                recommendations.append("  - Your weight is in a healthy range")
+        
+        elif factor in ["heightCm", "height"]:
+            recommendations.append(f"\n• **Height** ({value} cm) - {contribution_sign}{contribution:.2f}")
+            recommendations.append("  - Height is a fixed factor but affects BMI calculation")
+        
+        else:
+            # Generic handler for any unmatched factors
+            recommendations.append(f"\n• **{factor}** ({value}) - {contribution_sign}{contribution:.2f}")
+    
+    # Add immediate actionable steps
+    recommendations.append("\n**Immediate Actions You Can Take:**")
+    action_count = 0
+    for factor, contribution in top_factors[:3]:  # Top 3 actions
+        if abs(contribution) < 0.001:
+            continue
+        if factor == "glucose" and contribution > 0:
+            recommendations.append("• Start tracking your blood sugar and reduce sugary foods this week")
+            action_count += 1
+        elif factor == "bmi" and contribution > 0:
+            recommendations.append("• Begin with 20 minutes of walking daily and portion control")
+            action_count += 1
+        elif factor in ["sbp", "dbp"] and contribution > 0:
+            recommendations.append("• Reduce salt intake and start blood pressure monitoring")
+            action_count += 1
+        elif factor == "pulseRate" and contribution > 0:
+            recommendations.append("• Start cardiovascular exercise like brisk walking or cycling")
+            action_count += 1
+        elif factor in ["weightKg", "weight"] and contribution > 0:
+            recommendations.append("• Set a goal to lose 5-10% of body weight through diet and exercise")
+            action_count += 1
+        elif factor == "hypertensive" and contribution > 0:
+            recommendations.append("• Work with your doctor to manage blood pressure effectively")
+            action_count += 1
+    
+    if action_count == 0:
+        recommendations.append("• Continue maintaining your healthy lifestyle habits")
     
     # General recommendations
     recommendations.append("\n**General Recommendations:**")
