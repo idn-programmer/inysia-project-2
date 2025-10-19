@@ -1,19 +1,45 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { useUser } from "@/lib/user-context"
 import { useEffect, useState } from "react"
+import { apiClient } from "@/lib/api"
+import { PredictionOut } from "@/lib/types"
 
 export default function DashboardPage() {
-  const { user } = useUser()
-  const [lastRisk, setLastRisk] = useState<number | null>(null)
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading: authLoading } = useUser()
+  const [lastPrediction, setLastPrediction] = useState<PredictionOut | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    const lr = localStorage.getItem("lastRisk")
-    setLastRisk(lr ? Number(lr) : null)
-  }, [])
+    // Redirect to login if not authenticated (only after auth check is complete)
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+      return
+    }
+
+    if (isAuthenticated) {
+      const loadLatestPrediction = async () => {
+        try {
+          const data = await apiClient.getHistory(1) // Get only the latest prediction
+          if (data.length > 0) {
+            setLastPrediction(data[0])
+          }
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to load prediction data")
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      loadLatestPrediction()
+    }
+  }, [isAuthenticated, authLoading, router])
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -22,10 +48,51 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-semibold mb-2">Welcome, {user?.username || "User"}!</h1>
         <p className="text-muted-foreground mb-8">Choose an option to get started.</p>
 
-        {lastRisk !== null && (
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
+
+        {authLoading ? (
           <div className="mb-8 rounded-xl border border-border p-5 bg-card">
-            <p className="font-medium">Last Predicted Risk</p>
-            <p className="text-3xl font-bold mt-1">{lastRisk}%</p>
+            <div className="animate-pulse">
+              <div className="h-4 bg-muted rounded w-32 mb-2"></div>
+              <div className="h-8 bg-muted rounded w-16"></div>
+            </div>
+          </div>
+        ) : !isAuthenticated ? (
+          <div className="mb-8 rounded-xl border border-border p-5 bg-card">
+            <p className="text-muted-foreground">Please log in to view your prediction history.</p>
+          </div>
+        ) : isLoading ? (
+          <div className="mb-8 rounded-xl border border-border p-5 bg-card">
+            <div className="animate-pulse">
+              <div className="h-4 bg-muted rounded w-32 mb-2"></div>
+              <div className="h-8 bg-muted rounded w-16"></div>
+            </div>
+          </div>
+        ) : lastPrediction ? (
+          <div className="mb-8 rounded-xl border border-border p-5 bg-card">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Latest Prediction</p>
+                <p className="text-3xl font-bold mt-1">{lastPrediction.risk}%</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {new Date(lastPrediction.created_at).toLocaleDateString()}
+                </p>
+              </div>
+              <Link
+                href="/history"
+                className="text-sm text-primary hover:text-primary/80 underline"
+              >
+                View All
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-8 rounded-xl border border-border p-5 bg-card">
+            <p className="text-muted-foreground">No predictions yet. Get started with your first risk assessment!</p>
           </div>
         )}
 

@@ -248,6 +248,28 @@ npm run dev
 
 ---
 
+## 🤖 AI Chatbot Features
+
+### **Smart AI Assistant**
+Your chatbot now features advanced AI capabilities powered by DeepSeek:
+
+**Initial Assessment**: Rule-based personalized recommendations based on your risk factors
+**Follow-up Questions**: AI-powered responses to any health questions you ask
+**Context Awareness**: AI remembers your risk assessment and conversation history
+**Medical Safety**: Built-in medical disclaimers and professional consultation reminders
+
+### **How the AI Chatbot Works**
+1. **Complete Risk Assessment**: Get your diabetes risk prediction first
+2. **Ask Questions**: Type any health-related question in the chat
+3. **Get AI Responses**: Receive personalized, context-aware answers
+4. **Continue Conversation**: AI remembers your previous questions and risk data
+
+### **Example AI Interactions**
+- "What should I eat to lower my diabetes risk?"
+- "How does my BMI affect my risk score?"
+- "What exercises are best for me?"
+- "Should I be worried about my glucose level?"
+
 ## 🎓 Educational Value
 
 This application demonstrates:
@@ -256,13 +278,15 @@ This application demonstrates:
 - ✅ Full-stack web development
 - ✅ Real-time risk assessment
 - ✅ Data visualization
-- ✅ AI chatbot integration
+- ✅ AI chatbot integration (DeepSeek)
+- ✅ Advanced Natural Language Processing
 
 Perfect for:
 - 👨‍⚕️ Healthcare education
 - 📊 Diabetes awareness
 - 💻 ML portfolio projects
 - 🏥 Risk assessment demos
+- 🤖 AI integration examples
 
 ---
 

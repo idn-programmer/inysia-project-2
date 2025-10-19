@@ -32,7 +32,7 @@ def get_current_user(token: str, db: Session = Depends(get_db)) -> orm.User:
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
+            detail="Invalid authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

@@ -13,7 +13,7 @@ type Msg = { role: "user" | "assistant"; content: string }
 
 export default function ChatPage() {
   const router = useRouter()
-  const { user } = useUser()
+  const { user, isAuthenticated, isLoading: authLoading } = useUser()
   const [messages, setMessages] = useState<Msg[]>([
     { role: "assistant", content: "Hello! Ask me anything about your results or healthy habits." },
   ])
@@ -22,6 +22,14 @@ export default function ChatPage() {
   const [predictionContext, setPredictionContext] = useState<PredictionContext | null>(null)
   const [contextSent, setContextSent] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    // Redirect to login if not authenticated
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+      return
+    }
+  }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
     // Check for prediction context in localStorage
@@ -114,7 +122,17 @@ export default function ChatPage() {
           </button>
         </div>
 
-        {predictionContext && (
+        {authLoading ? (
+          <div className="text-center py-8">
+            <p>Loading...</p>
+          </div>
+        ) : !isAuthenticated ? (
+          <div className="text-center py-8">
+            <p>Please log in to use the AI Assistant.</p>
+          </div>
+        ) : (
+          <>
+            {predictionContext && (
           <div className="mb-4 p-4 rounded-lg border border-border bg-card">
             <div className="flex items-center justify-between">
               <div>
@@ -176,6 +194,8 @@ export default function ChatPage() {
             </button>
           </div>
         </div>
+          </>
+        )}
       </main>
       <Footer />
     </div>

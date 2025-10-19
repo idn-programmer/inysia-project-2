@@ -1,31 +1,43 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { apiClient } from "@/lib/api"
 import { PredictionOut } from "@/lib/types"
+import { useUser } from "@/lib/user-context"
 
 export default function HistoryPage() {
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading: authLoading } = useUser()
   const [items, setItems] = useState<PredictionOut[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
 
   useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const data = await apiClient.getHistory(50)
-        setItems(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load history")
-      } finally {
-        setIsLoading(false)
-      }
+    // Redirect to login if not authenticated (only after auth check is complete)
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login')
+      return
     }
 
-    loadHistory()
-  }, [])
+    if (isAuthenticated) {
+      const loadHistory = async () => {
+        try {
+          const data = await apiClient.getHistory(50)
+          setItems(data)
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Failed to load history")
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      loadHistory()
+    }
+  }, [isAuthenticated, authLoading, router])
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -39,7 +51,15 @@ export default function HistoryPage() {
           </div>
         )}
 
-        {isLoading ? (
+        {authLoading ? (
+          <div className="text-center py-8">
+            <p>Loading...</p>
+          </div>
+        ) : !isAuthenticated ? (
+          <div className="text-center py-8">
+            <p>Please log in to view your prediction history.</p>
+          </div>
+        ) : isLoading ? (
           <div className="text-center py-8">
             <p>Loading history...</p>
           </div>

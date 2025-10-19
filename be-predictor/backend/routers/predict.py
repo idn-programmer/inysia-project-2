@@ -105,22 +105,30 @@ def predict(
 
 @router.get("/history", response_model=List[PredictionOut])
 def history(
-    user_id: int | None = None,
     limit: int = 50,
     authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
-    q = db.query(orm.Prediction).order_by(orm.Prediction.created_at.desc())
-    # If auth header present, restrict to that user
+    # Require authentication for history access
     token = get_token_from_header(authorization)
-    if token:
-        try:
-            current_user = get_current_user(token, db)
-            q = q.filter(orm.Prediction.user_id == current_user.id)
-        except HTTPException:
-            pass
-    elif user_id:
-        q = q.filter(orm.Prediction.user_id == user_id)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to access history",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    try:
+        current_user = get_current_user(token, db)
+    except HTTPException:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Only return predictions for the authenticated user
+    q = db.query(orm.Prediction).filter(orm.Prediction.user_id == current_user.id).order_by(orm.Prediction.created_at.desc())
     rows = q.limit(limit).all()
     return [
         PredictionOut(

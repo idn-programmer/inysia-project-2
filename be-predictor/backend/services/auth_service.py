@@ -21,6 +21,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
     
     to_encode.update({"exp": expire})
+    # Ensure sub is a string for JWT compatibility
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
 
@@ -29,10 +32,17 @@ def verify_token(token: str) -> Optional[int]:
     """Verify JWT token and return user ID."""
     try:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        user_id_str = payload.get("sub")
+        
+        if user_id_str is None:
             return None
-        return int(user_id)
+        
+        # Convert string back to int
+        try:
+            user_id = int(user_id_str)
+            return user_id
+        except ValueError:
+            return None
     except JWTError:
         return None
 

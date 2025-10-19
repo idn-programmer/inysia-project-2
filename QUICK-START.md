@@ -113,9 +113,11 @@ npm run dev
 - Sorted by most recent
 
 ### ✅ AI Chat Assistant
-- Health-related Q&A
-- Message persistence
-- User context awareness
+- **Rule-based initial recommendations** based on risk assessment
+- **AI-powered follow-up responses** using DeepSeek
+- **Context-aware conversations** with full medical history
+- **Intelligent fallback** when AI is unavailable
+- Message persistence and conversation history
 
 ### ✅ Profile Management
 - User information display
@@ -160,7 +162,18 @@ DATABASE_URL=your_database_url
 SECRET_KEY=your_secret_key
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 ALLOWED_ORIGINS=http://localhost:3000
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
 ```
+
+### Getting Your DeepSeek API Key (for AI Chatbot)
+1. Visit [DeepSeek Platform](https://platform.deepseek.com/)
+2. Sign up or sign in to your account
+3. Go to API Keys section
+4. Create a new API key
+5. Copy the generated key
+6. Add it to your `.env` file as `DEEPSEEK_API_KEY=your_key_here`
+
+**Note**: Without the API key, the chatbot will use fallback responses instead of AI-powered answers.
 
 ## 🔒 Security Notes
 

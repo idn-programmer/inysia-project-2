@@ -42,6 +42,7 @@ class ApiClient {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.getAuthHeaders(),
       },
     });
 

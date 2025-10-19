@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { Home, Activity, History, MessageSquare, User, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/lib/user-context"
+import { useEffect, useState } from "react"
 
 const links = [
   { href: "/predict", label: "Predict", icon: Activity },
@@ -16,7 +17,12 @@ const links = [
 export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, logout, isAuthenticated } = useUser()
+  const { user, logout, isAuthenticated, isLoading } = useUser()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -38,7 +44,7 @@ export function Navbar() {
           <span className="font-semibold">Diabetes Risk Predictor</span>
         </Link>
         <div className="ml-auto flex items-center gap-1">
-          {isAuthenticated && (
+          {mounted && isAuthenticated && (
             <>
               <Link
                 href="/dashboard"
@@ -75,7 +81,7 @@ export function Navbar() {
               </button>
             </>
           )}
-          {!isAuthenticated && (
+          {mounted && !isAuthenticated && (
             <div className="flex items-center gap-2">
               <Link
                 href="/login"
@@ -89,6 +95,12 @@ export function Navbar() {
               >
                 Sign Up
               </Link>
+            </div>
+          )}
+          {!mounted && (
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
+              <div className="h-8 w-20 bg-muted animate-pulse rounded"></div>
             </div>
           )}
         </div>

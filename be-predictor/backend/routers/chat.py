@@ -1,15 +1,30 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from ..schemas.chat import ChatRequest, ChatResponse
 from ..db.session import get_db
 from ..db import models as orm
 from ..services.ai_service import ai_service
+from .auth import get_current_user
 
 
 router = APIRouter()
+
+
+def get_token_from_header(authorization: Optional[str] = Header(None)) -> Optional[str]:
+    """Extract token from Authorization header."""
+    if not authorization:
+        return None
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            return None
+        return token
+    except ValueError:
+        return None
 
 
 def generate_personalized_recommendations(prediction_context) -> str:
@@ -195,7 +210,29 @@ def generate_personalized_recommendations(prediction_context) -> str:
 
 
 @router.post("/chat", response_model=ChatResponse)
-def chat(req: ChatRequest, db: Session = Depends(get_db)):
+def chat(
+    req: ChatRequest, 
+    db: Session = Depends(get_db),
+    authorization: Optional[str] = Header(None)
+):
+    # Require authentication for chat access
+    token = get_token_from_header(authorization)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to access chat",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    try:
+        current_user = get_current_user(token, db)
+    except HTTPException:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     last_user = next((m for m in reversed(req.messages) if m.role == "user"), None)
     content = last_user.content if last_user else ""
     
@@ -224,20 +261,19 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
         
         reply += "Please note: I cannot provide medical advice. Always consult a healthcare professional for concerning symptoms or high risk scores."
 
-    # Store messages if user present
-    if req.userId:
-        for m in req.messages:
-            if m.role == "user":
-                db.add(
-                    orm.ChatMessage(
-                        user_id=req.userId, message=m.content
-                    )
+    # Store messages for the authenticated user
+    for m in req.messages:
+        if m.role == "user":
+            db.add(
+                orm.ChatMessage(
+                    user_id=current_user.id, message=m.content
                 )
-        db.add(
-            orm.ChatMessage(
-                user_id=req.userId, message="", response=reply
             )
+    db.add(
+        orm.ChatMessage(
+            user_id=current_user.id, message="", response=reply
         )
-        db.commit()
+    )
+    db.commit()
     
     return ChatResponse(reply=reply)

@@ -8,12 +8,23 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const limit = searchParams.get("limit") || "50"
     
-    const token = (await cookies()).get("token")?.value
+    // Get token from cookies or Authorization header
+    const cookieToken = (await cookies()).get("token")?.value
+    const authHeader = req.headers.get("authorization")
+    const token = cookieToken || authHeader?.replace("Bearer ", "")
+    
+    if (!token) {
+      return NextResponse.json(
+        { detail: "Authentication required" },
+        { status: 401 }
+      )
+    }
+    
     const res = await fetch(`${API_BASE}/history?limit=${limit}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        Authorization: `Bearer ${token}`,
       },
     })
     
