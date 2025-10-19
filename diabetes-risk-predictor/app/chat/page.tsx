@@ -21,7 +21,13 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [predictionContext, setPredictionContext] = useState<PredictionContext | null>(null)
   const [contextSent, setContextSent] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
+
+  // Fix hydration by ensuring client-side only rendering for conditional content
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     // Redirect to login if not authenticated
@@ -32,6 +38,9 @@ export default function ChatPage() {
   }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
+    // Only run on client side to avoid hydration mismatch
+    if (!isClient) return
+    
     // Check for prediction context in localStorage
     const storedContext = localStorage.getItem("predictionContext")
     if (storedContext) {
@@ -49,7 +58,7 @@ export default function ChatPage() {
         console.error("Failed to parse prediction context", e)
       }
     }
-  }, [])
+  }, [isClient])
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" })
@@ -66,14 +75,23 @@ export default function ChatPage() {
         content: msg.content
       }))
       
+      console.log("🚀 Sending chat request:", {
+        messages: chatMessages,
+        userId: user?.id,
+        prediction_context: context || undefined
+      })
+      
       const data = await apiClient.chat({
         messages: chatMessages,
         userId: user?.id,
         prediction_context: context || undefined
       })
       
+      console.log("✅ Chat response received:", data)
+      
       setMessages((m) => [...m, { role: "assistant", content: data.reply }])
     } catch (error) {
+      console.error("❌ Chat request failed:", error)
       setMessages((m) => [...m, { 
         role: "assistant", 
         content: "Sorry, I encountered an error. Please try again." 
@@ -122,7 +140,11 @@ export default function ChatPage() {
           </button>
         </div>
 
-        {authLoading ? (
+        {!isClient ? (
+          <div className="text-center py-8">
+            <p>Loading...</p>
+          </div>
+        ) : authLoading ? (
           <div className="text-center py-8">
             <p>Loading...</p>
           </div>

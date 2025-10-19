@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -7,8 +8,10 @@ from typing import Optional
 from ..schemas.chat import ChatRequest, ChatResponse
 from ..db.session import get_db
 from ..db import models as orm
-from ..services.ai_service import ai_service
+from ..services.ai_service import get_ai_service
 from .auth import get_current_user
+
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
@@ -215,9 +218,14 @@ def chat(
     db: Session = Depends(get_db),
     authorization: Optional[str] = Header(None)
 ):
+    logger.info(f"💬 Chat Router - Received chat request with {len(req.messages)} messages")
+    logger.info(f"💬 Chat Router - Prediction context present: {req.prediction_context is not None}")
+    logger.info(f"💬 Chat Router - Authorization header present: {authorization is not None}")
+    
     # Require authentication for chat access
     token = get_token_from_header(authorization)
     if not token:
+        logger.warning("💬 Chat Router - No authentication token provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required to access chat",
@@ -226,7 +234,9 @@ def chat(
     
     try:
         current_user = get_current_user(token, db)
-    except HTTPException:
+        logger.info(f"💬 Chat Router - Authenticated user: {current_user.username}")
+    except HTTPException as e:
+        logger.error(f"💬 Chat Router - Authentication failed: {e.detail}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token",
@@ -235,15 +245,19 @@ def chat(
     
     last_user = next((m for m in reversed(req.messages) if m.role == "user"), None)
     content = last_user.content if last_user else ""
+    logger.info(f"💬 Chat Router - Last user message: {content[:100]}...")
     
     # Determine response type based on message content and context
     if req.prediction_context and content and content.startswith("I just received"):
+        logger.info("💬 Chat Router - Using rule-based recommendations for initial assessment")
         # Initial prediction assessment - use rule-based recommendations
         reply = generate_personalized_recommendations(req.prediction_context)
     elif req.prediction_context or len(req.messages) > 1:
+        logger.info("💬 Chat Router - Using AI service for follow-up questions")
         # Follow-up questions or any question with context - use AI model
-        reply = ai_service.generate_ai_response(req.messages, req.prediction_context)
+        reply = get_ai_service().generate_ai_response(req.messages, req.prediction_context)
     else:
+        logger.info("💬 Chat Router - Using generic response without context")
         # Generic response without prediction context
         reply = (
             "Thanks for your message. I can provide personalized health recommendations if you share your diabetes risk assessment with me. "
@@ -261,6 +275,9 @@ def chat(
         
         reply += "Please note: I cannot provide medical advice. Always consult a healthcare professional for concerning symptoms or high risk scores."
 
+    logger.info(f"💬 Chat Router - Generated reply length: {len(reply)} characters")
+    logger.info(f"💬 Chat Router - Reply preview: {reply[:200]}...")
+
     # Store messages for the authenticated user
     for m in req.messages:
         if m.role == "user":
@@ -276,4 +293,5 @@ def chat(
     )
     db.commit()
     
+    logger.info("💬 Chat Router - Messages stored in database successfully")
     return ChatResponse(reply=reply)

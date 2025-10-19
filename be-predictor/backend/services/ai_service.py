@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import requests
 import json
 from typing import List, Dict, Any, Optional
@@ -11,24 +12,27 @@ logger = logging.getLogger(__name__)
 
 
 class DeepSeekChatService:
-    """Service for handling AI-powered chat using DeepSeek API."""
+    """Service for handling AI-powered chat using DeepSeek API via OpenRouter."""
     
     def __init__(self):
+        # Get fresh settings each time to ensure environment variables are loaded
         self.settings = get_settings()
         self.api_key = None
-        self.base_url = "https://api.deepseek.com/v1/chat/completions"
-        self.model_name = "deepseek-chat"
+        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.model_name = "deepseek/deepseek-chat-v3.1:free"
         self._initialize_deepseek()
     
     def _initialize_deepseek(self) -> None:
-        """Initialize DeepSeek API with API key."""
+        """Initialize DeepSeek API with API key via OpenRouter."""
         try:
+            logger.info(f"🤖 AI Service - Checking API key: {self.settings.deepseek_api_key[:20]}..." if self.settings.deepseek_api_key else "🤖 AI Service - No API key found")
+            
             if not self.settings.deepseek_api_key:
-                logger.warning("DEEPSEEK_API_KEY not found. AI chat will use fallback responses.")
+                logger.warning("🤖 AI Service - No API key available, using fallback response")
                 return
             
             self.api_key = self.settings.deepseek_api_key
-            logger.info("DeepSeek AI model initialized successfully")
+            logger.info("DeepSeek AI model initialized successfully via OpenRouter")
         except Exception as e:
             logger.error(f"Failed to initialize DeepSeek: {e}")
             self.api_key = None
@@ -107,8 +111,15 @@ You have access to the patient's diabetes risk assessment and can provide person
     ) -> str:
         """Generate AI response using DeepSeek API."""
         
+        logger.info(f"🤖 AI Service - Generating response for {len(messages)} messages")
+        logger.info(f"🤖 AI Service - Prediction context: {prediction_context is not None}")
+        logger.info(f"🤖 AI Service - API key available: {self.api_key is not None}")
+        logger.info(f"🤖 AI Service - API key value: {self.api_key[:20]}..." if self.api_key else "🤖 AI Service - API key is None")
+        logger.info(f"🤖 AI Service - Settings API key: {self.settings.deepseek_api_key[:20]}..." if self.settings.deepseek_api_key else "🤖 AI Service - Settings API key is None")
+        
         # Fallback if API key not available
         if not self.api_key:
+            logger.warning("🤖 AI Service - No API key available, using fallback response")
             return self._get_fallback_response(messages, prediction_context)
         
         try:
@@ -119,10 +130,14 @@ You have access to the patient's diabetes risk assessment and can provide person
             )
             
             if not last_user_message:
+                logger.info("🤖 AI Service - No user message found, returning default response")
                 return "I'm here to help! Please ask me any questions about your diabetes risk assessment or general health."
+            
+            logger.info(f"🤖 AI Service - Last user message: {last_user_message.content[:100]}...")
             
             # Create system prompt
             system_prompt = self._create_system_prompt(prediction_context)
+            logger.info(f"🤖 AI Service - System prompt length: {len(system_prompt)} characters")
             
             # Prepare messages for DeepSeek API
             api_messages = [{"role": "system", "content": system_prompt}]
@@ -134,42 +149,52 @@ You have access to the patient's diabetes risk assessment and can provide person
                     "content": msg.content
                 })
             
-            # Prepare API request
+            logger.info(f"🤖 AI Service - Prepared {len(api_messages)} messages for API")
+            
+            # Prepare API request for OpenRouter (matching the exact format from OpenRouter docs)
             headers = {
                 "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost:3000",  # Optional. Site URL for rankings on openrouter.ai.
+                "X-Title": "Diabetes Risk Predictor",  # Optional. Site title for rankings on openrouter.ai.
             }
             
             payload = {
                 "model": self.model_name,
                 "messages": api_messages,
-                "max_tokens": 1000,
-                "temperature": 0.7,
-                "stream": False
             }
             
-            # Make API request
+            logger.info(f"🤖 AI Service - Making request to OpenRouter: {self.base_url}")
+            logger.info(f"🤖 AI Service - Model: {self.model_name}")
+            logger.info(f"🤖 AI Service - Payload size: {len(str(payload))} characters")
+            
+            # Make API request using the exact format from OpenRouter docs
             response = requests.post(
-                self.base_url,
+                url=self.base_url,
                 headers=headers,
-                json=payload,
+                data=json.dumps(payload),
                 timeout=30
             )
             
+            logger.info(f"🤖 AI Service - OpenRouter response status: {response.status_code}")
+            
             if response.status_code == 200:
                 result = response.json()
+                logger.info(f"🤖 AI Service - OpenRouter response received: {len(str(result))} characters")
+                
                 if "choices" in result and len(result["choices"]) > 0:
                     ai_response = result["choices"][0]["message"]["content"]
+                    logger.info(f"🤖 AI Service - AI response generated: {len(ai_response)} characters")
                     return ai_response.strip()
                 else:
-                    logger.error(f"Unexpected API response format: {result}")
+                    logger.error(f"Unexpected OpenRouter API response format: {result}")
                     return self._get_fallback_response(messages, prediction_context)
             else:
-                logger.error(f"DeepSeek API error: {response.status_code} - {response.text}")
+                logger.error(f"OpenRouter API error: {response.status_code} - {response.text}")
                 return self._get_fallback_response(messages, prediction_context)
                 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Network error calling DeepSeek API: {e}")
+            logger.error(f"Network error calling OpenRouter API: {e}")
             return self._get_fallback_response(messages, prediction_context)
         except Exception as e:
             logger.error(f"Error generating AI response: {e}")
@@ -250,5 +275,19 @@ Please remember that I provide general health information only. For specific med
 Is there anything specific about diabetes prevention or your risk assessment you'd like to know more about?"""
 
 
-# Global instance
-ai_service = DeepSeekChatService()
+# Global instance - will be initialized lazily
+_ai_service = None
+
+def get_ai_service():
+    """Get AI service instance, initializing it if needed."""
+    global _ai_service
+    if _ai_service is None:
+        logger.info("🤖 AI Service - Initializing AI service...")
+        logger.info(f"🤖 AI Service - Environment DEEPSEEK_API_KEY: {os.getenv('DEEPSEEK_API_KEY', 'NOT_FOUND')}")
+        _ai_service = DeepSeekChatService()
+        logger.info("🤖 AI Service - AI service initialized")
+    else:
+        logger.info("🤖 AI Service - Using existing AI service instance")
+    return _ai_service
+
+# AI service is now only accessible through get_ai_service() for proper lazy initialization

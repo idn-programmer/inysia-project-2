@@ -13,6 +13,9 @@ class Settings:
     deepseek_api_key: str
 
     def __init__(self) -> None:
+        print(f"🔧 Settings - Initializing settings...")
+        print(f"🔧 Settings - DEEPSEEK_API_KEY from env: {os.getenv('DEEPSEEK_API_KEY', 'NOT_FOUND')}")
+        
         self.database_url = os.getenv(
             "DATABASE_URL", "postgresql+psycopg://postgres:richie@localhost:5432/Diabetes"
         )
@@ -25,9 +28,10 @@ class Settings:
         self.algorithm = "HS256"
         self.access_token_expire_minutes = 60
         self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        
+        print(f"🔧 Settings - DEEPSEEK_API_KEY set to: {self.deepseek_api_key[:20]}..." if self.deepseek_api_key else "🔧 Settings - DEEPSEEK_API_KEY is empty")
 
 
-@lru_cache
 def get_settings() -> Settings:
     return Settings()
 

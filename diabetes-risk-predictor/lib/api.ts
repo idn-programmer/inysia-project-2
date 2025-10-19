@@ -56,10 +56,19 @@ class ApiClient {
   }
 
   async chat(data: ChatRequest): Promise<ChatResponse> {
-    return this.request<ChatResponse>('/chat', {
+    console.log("📡 API Client - Sending chat request to backend:", {
+      endpoint: '/chat',
+      data: data,
+      baseUrl: this.baseUrl
+    });
+    
+    const response = await this.request<ChatResponse>('/chat', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    
+    console.log("📡 API Client - Received chat response from backend:", response);
+    return response;
   }
 }
 

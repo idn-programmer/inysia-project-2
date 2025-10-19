@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from contextlib import asynccontextmanager
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,8 +18,21 @@ from .routers import chat as chat_router
 from .routers import health as health_router
 from .routers import auth as auth_router
 
+# Load .env file from the backend directory
+backend_dir = Path(__file__).parent
+env_path = backend_dir / ".env"
+load_dotenv(env_path)
 
-load_dotenv()
+# If .env not found in backend directory, try parent directory
+if not env_path.exists():
+    parent_env_path = backend_dir.parent / ".env"
+    print(f"🔍 .env not found in backend, trying parent directory: {parent_env_path}")
+    load_dotenv(parent_env_path)
+
+# Debug: Check if .env file exists and log environment variables
+print(f"🔍 Looking for .env file at: {env_path}")
+print(f"🔍 .env file exists: {env_path.exists()}")
+print(f"🔍 DEEPSEEK_API_KEY from env: {os.getenv('DEEPSEEK_API_KEY', 'NOT_FOUND')}")
 
 
 @asynccontextmanager
