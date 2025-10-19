@@ -10,6 +10,7 @@ class Settings:
     secret_key: str
     algorithm: str
     access_token_expire_minutes: int
+    deepseek_api_key: str
 
     def __init__(self) -> None:
         self.database_url = os.getenv(
@@ -23,6 +24,7 @@ class Settings:
         self.secret_key = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
         self.algorithm = "HS256"
         self.access_token_expire_minutes = 60
+        self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
 
 
 @lru_cache

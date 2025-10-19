@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from ..schemas.chat import ChatRequest, ChatResponse
 from ..db.session import get_db
 from ..db import models as orm
+from ..services.ai_service import ai_service
 
 
 router = APIRouter()
@@ -198,13 +199,13 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     last_user = next((m for m in reversed(req.messages) if m.role == "user"), None)
     content = last_user.content if last_user else ""
     
-    # If prediction context is provided, generate personalized recommendations
-    if req.prediction_context:
+    # Determine response type based on message content and context
+    if req.prediction_context and content and content.startswith("I just received"):
+        # Initial prediction assessment - use rule-based recommendations
         reply = generate_personalized_recommendations(req.prediction_context)
-        
-        # If user asked a question, acknowledge it
-        if content and not content.startswith("I just received"):
-            reply = f"Based on your risk assessment, here are personalized recommendations:\n\n{reply}"
+    elif req.prediction_context or len(req.messages) > 1:
+        # Follow-up questions or any question with context - use AI model
+        reply = ai_service.generate_ai_response(req.messages, req.prediction_context)
     else:
         # Generic response without prediction context
         reply = (
