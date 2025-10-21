@@ -2,12 +2,12 @@ module.exports = {
   apps: [
     {
       name: 'diabetes-backend',
-      cwd: '/var/www/diabetes-predictor/be-predictor/backend',
-      script: 'venv/bin/python',
-      args: '-m uvicorn main:app --host 0.0.0.0 --port 8000',
+      cwd: '/var/www/diabetes-predictor/be-predictor',
+      script: 'backend/venv/bin/python',
+      args: '-m uvicorn backend.main:app --host 0.0.0.0 --port 8000',
       env: {
         NODE_ENV: 'production',
-        PYTHONPATH: '/var/www/diabetes-predictor/be-predictor/backend'
+        PYTHONPATH: '/var/www/diabetes-predictor/be-predictor'
       },
       instances: 1,
       autorestart: true,
