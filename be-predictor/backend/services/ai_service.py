@@ -25,13 +25,13 @@ class DeepSeekChatService:
     def _initialize_deepseek(self) -> None:
         """Initialize DeepSeek API with API key via OpenRouter."""
         try:
-            logger.info(f"🤖 AI Service - Checking API key: {self.settings.deepseek_api_key[:20]}..." if self.settings.deepseek_api_key else "🤖 AI Service - No API key found")
+            logger.info(f"🤖 AI Service - Checking API key: {self.settings.openrouter_api_key[:20]}..." if self.settings.openrouter_api_key else "🤖 AI Service - No API key found")
             
-            if not self.settings.deepseek_api_key:
+            if not self.settings.openrouter_api_key:
                 logger.warning("🤖 AI Service - No API key available, using fallback response")
                 return
             
-            self.api_key = self.settings.deepseek_api_key
+            self.api_key = self.settings.openrouter_api_key
             logger.info("DeepSeek AI model initialized successfully via OpenRouter")
         except Exception as e:
             logger.error(f"Failed to initialize DeepSeek: {e}")
@@ -115,7 +115,7 @@ You have access to the patient's diabetes risk assessment and can provide person
         logger.info(f"🤖 AI Service - Prediction context: {prediction_context is not None}")
         logger.info(f"🤖 AI Service - API key available: {self.api_key is not None}")
         logger.info(f"🤖 AI Service - API key value: {self.api_key[:20]}..." if self.api_key else "🤖 AI Service - API key is None")
-        logger.info(f"🤖 AI Service - Settings API key: {self.settings.deepseek_api_key[:20]}..." if self.settings.deepseek_api_key else "🤖 AI Service - Settings API key is None")
+        logger.info(f"🤖 AI Service - Settings API key: {self.settings.openrouter_api_key[:20]}..." if self.settings.openrouter_api_key else "🤖 AI Service - Settings API key is None")
         
         # Fallback if API key not available
         if not self.api_key:

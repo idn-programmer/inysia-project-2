@@ -10,11 +10,11 @@ class Settings:
     secret_key: str
     algorithm: str
     access_token_expire_minutes: int
-    deepseek_api_key: str
+    openrouter_api_key: str
 
     def __init__(self) -> None:
         print(f"🔧 Settings - Initializing settings...")
-        print(f"🔧 Settings - DEEPSEEK_API_KEY from env: {os.getenv('DEEPSEEK_API_KEY', 'NOT_FOUND')}")
+        print(f"🔧 Settings - OPENROUTER_API_KEY from env: {os.getenv('OPENROUTER_API_KEY', 'NOT_FOUND')}")
         
         self.database_url = os.getenv(
             "DATABASE_URL", "postgresql+psycopg://postgres:richie@localhost:5432/Diabetes"
@@ -27,9 +27,9 @@ class Settings:
         self.secret_key = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
         self.algorithm = "HS256"
         self.access_token_expire_minutes = 60
-        self.deepseek_api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        self.openrouter_api_key = os.getenv("OPENROUTER_API_KEY", "")
         
-        print(f"🔧 Settings - DEEPSEEK_API_KEY set to: {self.deepseek_api_key[:20]}..." if self.deepseek_api_key else "🔧 Settings - DEEPSEEK_API_KEY is empty")
+        print(f"🔧 Settings - OPENROUTER_API_KEY set to: {self.openrouter_api_key[:20]}..." if self.openrouter_api_key else "🔧 Settings - OPENROUTER_API_KEY is empty")
 
 
 def get_settings() -> Settings:

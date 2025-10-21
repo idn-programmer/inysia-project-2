@@ -32,7 +32,7 @@ if not env_path.exists():
 # Debug: Check if .env file exists and log environment variables
 print(f"🔍 Looking for .env file at: {env_path}")
 print(f"🔍 .env file exists: {env_path.exists()}")
-print(f"🔍 DEEPSEEK_API_KEY from env: {os.getenv('DEEPSEEK_API_KEY', 'NOT_FOUND')}")
+print(f"🔍 OPENROUTER_API_KEY from env: {os.getenv('OPENROUTER_API_KEY', 'NOT_FOUND')}")
 
 
 @asynccontextmanager

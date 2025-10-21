@@ -57,18 +57,28 @@ class ApiClient {
 
   async chat(data: ChatRequest): Promise<ChatResponse> {
     console.log("📡 API Client - Sending chat request to backend:", {
-      endpoint: '/chat',
-      data: data,
-      baseUrl: this.baseUrl
+      endpoint: '/api/chat',
+      data: data
     });
     
-    const response = await this.request<ChatResponse>('/chat', {
+    // Use Next.js API route for proper SSR support
+    const response = await fetch('/api/chat', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.getAuthHeaders(),
+      },
       body: JSON.stringify(data),
     });
+
+    const responseData = await response.json();
     
-    console.log("📡 API Client - Received chat response from backend:", response);
-    return response;
+    if (!response.ok) {
+      throw new Error(responseData.detail || `HTTP ${response.status}`);
+    }
+    
+    console.log("📡 API Client - Received chat response from backend:", responseData);
+    return responseData;
   }
 }
 
