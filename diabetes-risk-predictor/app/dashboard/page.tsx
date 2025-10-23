@@ -45,8 +45,8 @@ export default function DashboardPage() {
     <div className="min-h-dvh bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="text-3xl font-semibold mb-2">Welcome, {user?.username || "User"}!</h1>
-        <p className="text-muted-foreground mb-8">Choose an option to get started.</p>
+        <h1 className="text-3xl font-semibold mb-2">Selamat datang, {user?.username || "Pengguna"}!</h1>
+        <p className="text-muted-foreground mb-8">Pilih opsi untuk memulai.</p>
 
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
@@ -63,7 +63,7 @@ export default function DashboardPage() {
           </div>
         ) : !isAuthenticated ? (
           <div className="mb-8 rounded-xl border border-border p-5 bg-card">
-            <p className="text-muted-foreground">Please log in to view your prediction history.</p>
+            <p className="text-muted-foreground">Silakan masuk untuk melihat riwayat prediksi Anda.</p>
           </div>
         ) : isLoading ? (
           <div className="mb-8 rounded-xl border border-border p-5 bg-card">
@@ -76,7 +76,7 @@ export default function DashboardPage() {
           <div className="mb-8 rounded-xl border border-border p-5 bg-card">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Latest Prediction</p>
+                <p className="font-medium">Prediksi Terbaru</p>
                 <p className="text-3xl font-bold mt-1">{lastPrediction.risk}%</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {new Date(lastPrediction.created_at).toLocaleDateString()}
@@ -86,13 +86,13 @@ export default function DashboardPage() {
                 href="/history"
                 className="text-sm text-primary hover:text-primary/80 underline"
               >
-                View All
+                Lihat Semua
               </Link>
             </div>
           </div>
         ) : (
           <div className="mb-8 rounded-xl border border-border p-5 bg-card">
-            <p className="text-muted-foreground">No predictions yet. Get started with your first risk assessment!</p>
+            <p className="text-muted-foreground">Belum ada prediksi. Mulai dengan penilaian risiko pertama Anda!</p>
           </div>
         )}
 
@@ -102,28 +102,28 @@ export default function DashboardPage() {
             className="rounded-xl bg-primary px-6 py-6 text-primary-foreground font-semibold text-center"
             aria-label="Go to Prediction"
           >
-            Predict
+            Prediksi
           </Link>
           <Link
             href="/history"
             className="rounded-xl bg-accent px-6 py-6 text-accent-foreground font-semibold text-center"
             aria-label="Go to History"
           >
-            History
+            Riwayat
           </Link>
           <Link
             href="/chat"
             className="rounded-xl border border-border px-6 py-6 font-semibold text-center hover:bg-muted"
             aria-label="Go to AI Assistant"
           >
-            AI Assistant
+            Asisten AI
           </Link>
           <Link
             href="/profile"
             className="rounded-xl border border-border px-6 py-6 font-semibold text-center hover:bg-muted"
             aria-label="Go to Profile"
           >
-            Profile
+            Profil
           </Link>
         </div>
       </main>

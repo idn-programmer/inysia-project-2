@@ -23,7 +23,7 @@ export default function SignupPage() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (password !== confirm) {
-      setError("Passwords do not match")
+      setError("Kata sandi tidak cocok")
       return
     }
     
@@ -34,7 +34,7 @@ export default function SignupPage() {
       await signup(username, email, password)
       router.push("/dashboard")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Signup failed")
+      setError(err instanceof Error ? err.message : "Gagal mendaftar")
     } finally {
       setIsLoading(false)
     }
@@ -44,7 +44,7 @@ export default function SignupPage() {
     <div className="min-h-dvh bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-lg px-4 py-10">
-        <h1 className="text-3xl font-semibold mb-6">Sign Up</h1>
+        <h1 className="text-3xl font-semibold mb-6">Daftar</h1>
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
             {error}
@@ -52,7 +52,7 @@ export default function SignupPage() {
         )}
         <form onSubmit={onSubmit} className="grid gap-4">
           <InputField 
-            label="Username" 
+            label="Nama Pengguna" 
             name="username" 
             value={username} 
             onChange={setUsername} 
@@ -67,7 +67,7 @@ export default function SignupPage() {
             required 
           />
           <InputField
-            label="Password"
+            label="Kata Sandi"
             name="password"
             type="password"
             value={password}
@@ -75,7 +75,7 @@ export default function SignupPage() {
             required
           />
           <InputField
-            label="Confirm Password"
+            label="Konfirmasi Kata Sandi"
             name="confirm"
             type="password"
             value={confirm}
@@ -88,13 +88,13 @@ export default function SignupPage() {
             className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold disabled:opacity-50"
             aria-label="Create account"
           >
-            {isLoading ? "Creating Account..." : "Create Account"}
+            {isLoading ? "Membuat Akun..." : "Buat Akun"}
           </button>
         </form>
         <p className="mt-4">
-          Already have an account?{" "}
+          Sudah memiliki akun?{" "}
           <Link href="/login" className="text-primary underline">
-            Log in
+            Masuk
           </Link>
         </p>
       </main>

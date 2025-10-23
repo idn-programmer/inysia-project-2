@@ -102,7 +102,7 @@ export default function PredictPage() {
       }
       localStorage.setItem("predictionContext", JSON.stringify(predictionContext))
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Prediction failed")
+      setError(err instanceof Error ? err.message : "Prediksi gagal")
     } finally {
       setIsLoading(false)
     }
@@ -119,18 +119,18 @@ export default function PredictPage() {
     if (!result || !result.shap_values) return []
     
     const featureLabels: Record<string, string> = {
-      glucose: "Glucose",
+      glucose: "Glukosa",
       bmi: "BMI",
-      sbp: "Systolic BP",
-      dbp: "Diastolic BP",
-      pulseRate: "Pulse Rate",
-      familyDiabetes: "Family Diabetes",
-      hypertensive: "Hypertensive",
-      familyHypertension: "Family Hypertension",
-      cardiovascular: "Cardiovascular",
+      sbp: "Tekanan Darah Sistolik",
+      dbp: "Tekanan Darah Diastolik",
+      pulseRate: "Denyut Nadi",
+      familyDiabetes: "Riwayat Diabetes Keluarga",
+      hypertensive: "Hipertensi",
+      familyHypertension: "Riwayat Hipertensi Keluarga",
+      cardiovascular: "Kardiovaskular",
       stroke: "Stroke",
-      heightCm: "Height",
-      weightKg: "Weight"
+      heightCm: "Tinggi Badan",
+      weightKg: "Berat Badan"
     }
     
     // Convert SHAP values to chart data, filter out age, gender, and very small values
@@ -152,7 +152,7 @@ export default function PredictPage() {
     <div className="min-h-dvh bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="text-3xl font-semibold mb-6">Check Your Diabetes Risk</h1>
+        <h1 className="text-3xl font-semibold mb-6">Periksa Risiko Diabetes Anda</h1>
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
             {error}
@@ -161,7 +161,7 @@ export default function PredictPage() {
         <form onSubmit={onSubmit} className="grid gap-5">
           <div className="grid gap-4 sm:grid-cols-2">
             <InputField
-              label="Age"
+              label="Usia"
               name="age"
               type="number"
               value={form.age}
@@ -169,52 +169,52 @@ export default function PredictPage() {
               required
             />
             <SelectField
-              label="Gender"
+              label="Jenis Kelamin"
               name="gender"
               value={form.gender}
               onChange={(v) => setForm({ ...form, gender: v as "Male" | "Female" })}
               options={[
-                { value: "Male", label: "Male" },
-                { value: "Female", label: "Female" },
+                { value: "Male", label: "Laki-laki" },
+                { value: "Female", label: "Perempuan" },
               ]}
             />
             <InputField
-              label="Pulse Rate"
+              label="Denyut Nadi"
               name="pulseRate"
               type="number"
               value={form.pulseRate}
               onChange={(v) => setForm({ ...form, pulseRate: v === "" ? "" : Number(v) })}
             />
             <InputField
-              label="Systolic BP"
+              label="Tekanan Darah Sistolik"
               name="sbp"
               type="number"
               value={form.sbp}
               onChange={(v) => setForm({ ...form, sbp: v === "" ? "" : Number(v) })}
             />
             <InputField
-              label="Diastolic BP"
+              label="Tekanan Darah Diastolik"
               name="dbp"
               type="number"
               value={form.dbp}
               onChange={(v) => setForm({ ...form, dbp: v === "" ? "" : Number(v) })}
             />
             <InputField
-              label="Glucose"
+              label="Glukosa"
               name="glucose"
               type="number"
               value={form.glucose}
               onChange={(v) => setForm({ ...form, glucose: v === "" ? "" : Number(v) })}
             />
             <InputField
-              label="Height (cm)"
+              label="Tinggi Badan (cm)"
               name="height"
               type="number"
               value={form.heightCm}
               onChange={(v) => setForm({ ...form, heightCm: v === "" ? "" : Number(v) })}
             />
             <InputField
-              label="Weight (kg)"
+              label="Berat Badan (kg)"
               name="weight"
               type="number"
               value={form.weightKg}
@@ -226,30 +226,30 @@ export default function PredictPage() {
               type="number"
               value={form.bmi === "" ? String(autoBmi) : String(form.bmi)}
               onChange={(v) => setForm({ ...form, bmi: v === "" ? "" : Number(v) })}
-              hint="Auto-calculated from height and weight; you can adjust if needed."
+              hint="Otomatis dihitung dari tinggi dan berat badan; Anda dapat menyesuaikan jika diperlukan."
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <ToggleField
-              label="Family Diabetes"
+              label="Riwayat Diabetes Keluarga"
               name="familyDiabetes"
               checked={form.familyDiabetes}
               onChange={(v) => setForm({ ...form, familyDiabetes: v })}
             />
             <ToggleField
-              label="Hypertensive"
+              label="Hipertensi"
               name="hypertensive"
               checked={form.hypertensive}
               onChange={(v) => setForm({ ...form, hypertensive: v })}
             />
             <ToggleField
-              label="Family Hypertension"
+              label="Riwayat Hipertensi Keluarga"
               name="familyHypertension"
               checked={form.familyHypertension}
               onChange={(v) => setForm({ ...form, familyHypertension: v })}
             />
             <ToggleField
-              label="Cardiovascular Disease"
+              label="Penyakit Kardiovaskular"
               name="cardiovascular"
               checked={form.cardiovascular}
               onChange={(v) => setForm({ ...form, cardiovascular: v })}
@@ -267,7 +267,7 @@ export default function PredictPage() {
             className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold disabled:opacity-50"
             aria-label="Predict My Risk"
           >
-            {isLoading ? "Predicting..." : "Predict My Risk"}
+            {isLoading ? "Memprediksi..." : "Prediksi Risiko Saya"}
           </button>
         </form>
 
@@ -275,29 +275,29 @@ export default function PredictPage() {
           <div className="mt-8 space-y-6">
             <div className="rounded-xl border border-border p-6 bg-card">
               <p className="text-2xl font-semibold">
-                Your predicted risk is{" "}
+                Risiko prediksi Anda adalah{" "}
                 <span className={resultColor} aria-live="polite" aria-atomic="true">
                   {result.risk}%
                 </span>
               </p>
               <p className="mt-3 text-muted-foreground">
-                Remember, maintaining healthy diet and exercise can reduce risk.
+                Ingat, menjaga pola makan sehat dan olahraga dapat mengurangi risiko.
               </p>
             </div>
 
             {shapChartData.length > 0 && (
               <div className="rounded-xl border border-border p-6 bg-card">
-                <h2 className="text-xl font-semibold mb-4">Risk Factor Analysis</h2>
+                <h2 className="text-xl font-semibold mb-4">Analisis Faktor Risiko</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                  These factors contribute most to your risk score. Red bars increase risk, green bars decrease it.
+                  Faktor-faktor ini paling berkontribusi pada skor risiko Anda. Bar merah meningkatkan risiko, bar hijau mengurangi risiko.
                 </p>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={shapChartData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" label={{ value: 'Contribution', position: 'insideBottom', offset: -5 }} />
+                    <XAxis type="number" label={{ value: 'Kontribusi', position: 'insideBottom', offset: -5 }} />
                     <YAxis type="category" dataKey="name" />
                     <Tooltip 
-                      formatter={(value: number) => [`${value > 0 ? '+' : ''}${value.toFixed(3)}`, 'Impact']}
+                      formatter={(value: number) => [`${value > 0 ? '+' : ''}${value.toFixed(3)}`, 'Dampak']}
                       contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
                     />
                     <Bar dataKey="contribution" radius={[0, 8, 8, 0]}>
@@ -315,7 +315,7 @@ export default function PredictPage() {
               className="w-full rounded-lg bg-blue-600 hover:bg-blue-700 px-6 py-4 text-white font-semibold transition-colors"
               aria-label="Ask AI about my results"
             >
-              💬 Ask AI About My Results
+              💬 Tanya AI Tentang Hasil Saya
             </button>
           </div>
         )}

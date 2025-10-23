@@ -15,7 +15,7 @@ export default function ChatPage() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading: authLoading } = useUser()
   const [messages, setMessages] = useState<Msg[]>([
-    { role: "assistant", content: "Hello! Ask me anything about your results or healthy habits." },
+    { role: "assistant", content: "Halo! Tanyakan apa saja tentang hasil Anda atau kebiasaan sehat." },
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -51,7 +51,7 @@ export default function ChatPage() {
         // Auto-send initial message about prediction results
         if (!contextSent) {
           setContextSent(true)
-          const initialMessage = "I just received my diabetes risk assessment. Can you explain my results and provide personalized recommendations?"
+          const initialMessage = "Saya baru saja menerima penilaian risiko diabetes. Bisakah Anda menjelaskan hasil saya dan memberikan rekomendasi yang dipersonalisasi?"
           sendMessageWithContext(initialMessage, context)
         }
       } catch (e) {
@@ -94,7 +94,7 @@ export default function ChatPage() {
       console.error("❌ Chat request failed:", error)
       setMessages((m) => [...m, { 
         role: "assistant", 
-        content: "Sorry, I encountered an error. Please try again." 
+        content: "Maaf, saya mengalami kesalahan. Silakan coba lagi." 
       }])
     } finally {
       setIsLoading(false)
@@ -131,26 +131,26 @@ export default function ChatPage() {
       <Navbar />
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-semibold">AI Assistant</h1>
+          <h1 className="text-3xl font-semibold">Asisten AI</h1>
           <button
             onClick={() => router.push('/predict')}
             className="rounded-lg bg-secondary hover:bg-secondary/80 px-4 py-2 text-sm font-medium transition-colors"
           >
-            📊 Get New Risk Assessment
+            📊 Dapatkan Penilaian Risiko Baru
           </button>
         </div>
 
         {!isClient ? (
           <div className="text-center py-8">
-            <p>Loading...</p>
+            <p>Memuat...</p>
           </div>
         ) : authLoading ? (
           <div className="text-center py-8">
-            <p>Loading...</p>
+            <p>Memuat...</p>
           </div>
         ) : !isAuthenticated ? (
           <div className="text-center py-8">
-            <p>Please log in to use the AI Assistant.</p>
+            <p>Silakan masuk untuk menggunakan Asisten AI.</p>
           </div>
         ) : (
           <>
@@ -158,13 +158,13 @@ export default function ChatPage() {
           <div className="mb-4 p-4 rounded-lg border border-border bg-card">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Your Risk Score</p>
+                <p className="text-sm text-muted-foreground">Skor Risiko Anda</p>
                 <p className="text-2xl font-semibold">
                   <span className={riskColor}>{predictionContext.risk_score}%</span>
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-muted-foreground">Top Risk Factors</p>
+                <p className="text-sm text-muted-foreground">Faktor Risiko Utama</p>
                 <p className="text-sm font-medium">
                   {Object.entries(predictionContext.shap_values)
                     .filter(([key]) => key !== 'age' && key !== 'gender')
@@ -203,7 +203,7 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message..."
+              placeholder="Ketik pesan Anda..."
               aria-label="Type your message"
             />
             <button
@@ -212,7 +212,7 @@ export default function ChatPage() {
               disabled={isLoading}
               aria-label="Send message"
             >
-              {isLoading ? "Sending..." : "Send"}
+              {isLoading ? "Mengirim..." : "Kirim"}
             </button>
           </div>
         </div>

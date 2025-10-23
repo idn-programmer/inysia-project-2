@@ -8,10 +8,10 @@ import { useUser } from "@/lib/user-context"
 import { useEffect, useState } from "react"
 
 const links = [
-  { href: "/predict", label: "Predict", icon: Activity },
-  { href: "/history", label: "History", icon: History },
-  { href: "/chat", label: "AI Assistant", icon: MessageSquare },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/predict", label: "Prediksi", icon: Activity },
+  { href: "/history", label: "Riwayat", icon: History },
+  { href: "/chat", label: "Asisten AI", icon: MessageSquare },
+  { href: "/profile", label: "Profil", icon: User },
 ]
 
 export function Navbar() {
@@ -35,14 +35,13 @@ export function Navbar() {
       className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur"
     >
       <div className="mx-auto max-w-5xl px-4 py-3 flex items-center gap-4">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted"
-          aria-label="Go to dashboard"
-        >
+        <div className="inline-flex items-center gap-2 rounded-lg px-3 py-2">
           <Home className="size-6 text-primary" aria-hidden="true" />
-          <span className="font-semibold">Diabetes Risk Predictor</span>
-        </Link>
+          <div>
+            <span className="font-semibold">Sadar Diabetes</span>
+            <p className="text-xs text-muted-foreground">Prediksi Risiko Diabetes</p>
+          </div>
+        </div>
         <div className="ml-auto flex items-center gap-1">
           {mounted && isAuthenticated && (
             <>
@@ -50,7 +49,7 @@ export function Navbar() {
                 href="/dashboard"
                 className="text-sm text-muted-foreground hover:text-foreground hidden sm:inline px-2 py-1 rounded hover:bg-muted transition-colors"
               >
-                Dashboard
+                Halaman Awal
               </Link>
               {links.map((l) => {
                 const Icon = l.icon
@@ -77,7 +76,7 @@ export function Navbar() {
                 aria-label="Logout"
               >
                 <LogOut className="size-5" aria-hidden="true" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden sm:inline">Keluar</span>
               </button>
             </>
           )}
@@ -87,13 +86,13 @@ export function Navbar() {
                 href="/login"
                 className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted"
               >
-                Login
+                Masuk
               </Link>
               <Link
                 href="/signup"
                 className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                Sign Up
+                Daftar
               </Link>
             </div>
           )}

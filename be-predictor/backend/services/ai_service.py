@@ -43,9 +43,9 @@ class DeepSeekChatService:
             return ""
         
         context_parts = [
-            f"**Patient Risk Assessment:**",
-            f"- Diabetes Risk Score: {prediction_context.risk_score}%",
-            f"- Risk Level: {'High' if prediction_context.risk_score >= 67 else 'Moderate' if prediction_context.risk_score >= 34 else 'Low'}",
+            f"**Penilaian Risiko Pasien:**",
+            f"- Skor Risiko Diabetes: {prediction_context.risk_score}%",
+            f"- Tingkat Risiko: {'Tinggi' if prediction_context.risk_score >= 67 else 'Sedang' if prediction_context.risk_score >= 34 else 'Rendah'}",
         ]
         
         # Add top risk factors from SHAP values
@@ -57,14 +57,14 @@ class DeepSeekChatService:
             )
             top_factors = sorted_factors[:5]
             
-            context_parts.append("\n**Top Risk Factors (SHAP Analysis):**")
+            context_parts.append("\n**Faktor Risiko Utama (Analisis SHAP):**")
             for factor, contribution in top_factors:
-                direction = "increases" if contribution > 0 else "decreases"
-                context_parts.append(f"- {factor}: {contribution:.3f} ({direction} risk)")
+                direction = "meningkatkan" if contribution > 0 else "menurunkan"
+                context_parts.append(f"- {factor}: {contribution:.3f} ({direction} risiko)")
         
         # Add patient features
         if prediction_context.features:
-            context_parts.append("\n**Patient Health Metrics:**")
+            context_parts.append("\n**Metrik Kesehatan Pasien:**")
             for key, value in prediction_context.features.items():
                 if key not in ['age', 'gender']:  # Exclude demographics for privacy
                     context_parts.append(f"- {key}: {value}")
@@ -73,30 +73,30 @@ class DeepSeekChatService:
     
     def _create_system_prompt(self, prediction_context: Optional[PredictionContext]) -> str:
         """Create system prompt for the AI model."""
-        base_prompt = """You are a helpful and knowledgeable AI health assistant specializing in diabetes prevention and management. You provide evidence-based information and practical advice while maintaining appropriate medical disclaimers.
+        base_prompt = """Anda adalah asisten kesehatan AI yang membantu dan berpengetahuan luas, khusus dalam pencegahan dan manajemen diabetes. Anda memberikan informasi berbasis bukti dan saran praktis sambil mempertahankan disclaimer medis yang sesuai.
 
-IMPORTANT GUIDELINES:
-- Always remind users that you provide general health information, not medical advice
-- For high-risk patients (risk score ≥67%), strongly recommend consulting healthcare professionals
-- Be encouraging and supportive while being honest about risks
-- Focus on actionable, evidence-based lifestyle recommendations
-- If asked about specific medical conditions or treatments, recommend consulting a doctor
-- Keep responses concise but informative (2-3 paragraphs maximum)
-- Use a friendly, professional tone
+PANDUAN PENTING:
+- Selalu ingatkan pengguna bahwa Anda memberikan informasi kesehatan umum, bukan saran medis
+- Untuk pasien berisiko tinggi (skor risiko ≥67%), sangat merekomendasikan konsultasi dengan profesional kesehatan
+- Bersikap mendorong dan mendukung sambil jujur tentang risiko
+- Fokus pada rekomendasi gaya hidup yang dapat ditindaklanjuti dan berbasis bukti
+- Jika ditanya tentang kondisi medis atau perawatan spesifik, rekomendasikan konsultasi dengan dokter
+- Buat respons ringkas namun informatif (maksimal 2-3 paragraf)
+- Gunakan nada yang ramah dan profesional
 
-FORMATTING REQUIREMENTS:
-- DO NOT use bold text, asterisks (*), or any markdown formatting
-- Use simple bullet points with number for each point
-- Use clear, plain text formatting only
-- Use enter to make the formatting clear and 
-- Structure your response with clear points and sub-points
-- Avoid any special formatting characters
+PERSYARATAN FORMAT:
+- JANGAN gunakan teks tebal, asterisk (*), atau format markdown apa pun
+- Gunakan bullet point sederhana dengan nomor untuk setiap poin
+- Gunakan format teks biasa yang jelas saja
+- Gunakan enter untuk membuat format yang jelas
+- Struktur respons Anda dengan poin dan sub-poin yang jelas
+- Hindari karakter format khusus apa pun
 
-You have access to the patient's diabetes risk assessment and can provide personalized recommendations based on their specific risk factors and health metrics."""
+Anda memiliki akses ke penilaian risiko diabetes pasien dan dapat memberikan rekomendasi yang dipersonalisasi berdasarkan faktor risiko dan metrik kesehatan spesifik mereka."""
 
         if prediction_context:
             context_info = self._format_prediction_context(prediction_context)
-            base_prompt += f"\n\n**CURRENT PATIENT CONTEXT:**\n{context_info}"
+            base_prompt += f"\n\n**KONTEKS PASIEN SAAT INI:**\n{context_info}"
         
         return base_prompt
     
@@ -107,7 +107,7 @@ You have access to the patient's diabetes risk assessment and can provide person
         
         formatted_messages = []
         for msg in messages:
-            role = "User" if msg.role == "user" else "Assistant"
+            role = "Pengguna" if msg.role == "user" else "Asisten"
             formatted_messages.append(f"{role}: {msg.content}")
         
         return "\n".join(formatted_messages)
@@ -165,7 +165,7 @@ You have access to the patient's diabetes risk assessment and can provide person
             
             if not last_user_message:
                 logger.info("🤖 AI Service - No user message found, returning default response")
-                return "I'm here to help! Please ask me any questions about your diabetes risk assessment or general health."
+                return "Saya di sini untuk membantu! Silakan tanyakan apa saja tentang penilaian risiko diabetes Anda atau kesehatan umum."
             
             logger.info(f"🤖 AI Service - Last user message: {last_user_message.content[:100]}...")
             
@@ -251,66 +251,66 @@ You have access to the patient's diabetes risk assessment and can provide person
         )
         
         if not last_user_message:
-            return "I'm here to help! Please ask me any questions about your diabetes risk assessment or general health."
+            return "Saya di sini untuk membantu! Silakan tanyakan apa saja tentang penilaian risiko diabetes Anda atau kesehatan umum."
         
         user_question = last_user_message.content.lower()
         
         # Simple keyword-based responses as fallback
-        if any(word in user_question for word in ['glucose', 'blood sugar', 'sugar']):
-            return """I can help with glucose-related questions! Here are some general tips:
+        if any(word in user_question for word in ['glucose', 'blood sugar', 'sugar', 'glukosa', 'gula darah', 'gula']):
+            return """Saya dapat membantu dengan pertanyaan terkait glukosa! Berikut beberapa tips umum:
 
-• Monitor your blood sugar regularly if you're at risk
-• Choose complex carbohydrates over simple sugars
-• Eat meals at regular intervals
-• Consider fiber-rich foods to help stabilize blood sugar
+• Pantau gula darah Anda secara teratur jika Anda berisiko
+• Pilih karbohidrat kompleks daripada gula sederhana
+• Makan pada interval teratur
+• Pertimbangkan makanan kaya serat untuk membantu menstabilkan gula darah
 
-Remember, I provide general information only. For specific glucose management, please consult your healthcare provider."""
+Ingat, saya hanya memberikan informasi umum. Untuk manajemen glukosa spesifik, silakan konsultasikan dengan penyedia layanan kesehatan Anda."""
         
-        elif any(word in user_question for word in ['weight', 'bmi', 'lose weight']):
-            return """Weight management is important for diabetes prevention! Here are some strategies:
+        elif any(word in user_question for word in ['weight', 'bmi', 'lose weight', 'berat badan', 'menurunkan berat badan']):
+            return """Manajemen berat badan penting untuk pencegahan diabetes! Berikut beberapa strategi:
 
-• Aim for gradual, sustainable weight loss (1-2 lbs per week)
-• Focus on portion control and balanced meals
-• Include regular physical activity (150 minutes/week)
-• Consider working with a dietitian for personalized guidance
+• Targetkan penurunan berat badan bertahap dan berkelanjutan (1-2 kg per minggu)
+• Fokus pada kontrol porsi dan makanan seimbang
+• Sertakan aktivitas fisik teratur (150 menit/minggu)
+• Pertimbangkan bekerja dengan ahli gizi untuk panduan yang dipersonalisasi
 
-Even a 5-10% weight loss can significantly reduce diabetes risk. Please consult a healthcare provider for personalized weight management advice."""
+Bahkan penurunan berat badan 5-10% dapat secara signifikan mengurangi risiko diabetes. Silakan konsultasikan dengan penyedia layanan kesehatan untuk saran manajemen berat badan yang dipersonalisasi."""
         
-        elif any(word in user_question for word in ['exercise', 'activity', 'fitness']):
-            return """Regular exercise is excellent for diabetes prevention! Here are some recommendations:
+        elif any(word in user_question for word in ['exercise', 'activity', 'fitness', 'olahraga', 'aktivitas']):
+            return """Olahraga teratur sangat baik untuk pencegahan diabetes! Berikut beberapa rekomendasi:
 
-• Aim for 150 minutes of moderate-intensity exercise per week
-• Include both cardio (walking, cycling) and strength training
-• Start slowly and gradually increase intensity
-• Find activities you enjoy to maintain consistency
+• Targetkan 150 menit olahraga intensitas sedang per minggu
+• Sertakan kardio (berjalan, bersepeda) dan latihan kekuatan
+• Mulai perlahan dan tingkatkan intensitas secara bertahap
+• Temukan aktivitas yang Anda nikmati untuk menjaga konsistensi
 
-Always consult your doctor before starting a new exercise program, especially if you have existing health conditions."""
+Selalu konsultasikan dengan dokter Anda sebelum memulai program olahraga baru, terutama jika Anda memiliki kondisi kesehatan yang ada."""
         
-        elif any(word in user_question for word in ['diet', 'food', 'nutrition', 'eat']):
-            return """A healthy diet is crucial for diabetes prevention! Here are some guidelines:
+        elif any(word in user_question for word in ['diet', 'food', 'nutrition', 'eat', 'makanan', 'nutrisi', 'makan']):
+            return """Diet sehat sangat penting untuk pencegahan diabetes! Berikut beberapa panduan:
 
-• Focus on vegetables, whole grains, and lean proteins
-• Limit processed foods and added sugars
-• Control portion sizes
-• Stay hydrated with water
-• Consider the Mediterranean or DASH diet patterns
+• Fokus pada sayuran, biji-bijian utuh, dan protein tanpa lemak
+• Batasi makanan olahan dan gula tambahan
+• Kontrol ukuran porsi
+• Tetap terhidrasi dengan air
+• Pertimbangkan pola diet Mediterania atau DASH
 
-For personalized nutrition advice, consider consulting a registered dietitian."""
+Untuk saran nutrisi yang dipersonalisasi, pertimbangkan konsultasi dengan ahli gizi terdaftar."""
         
         else:
-            return f"""Thanks for your question: "{last_user_message.content}"
+            return f"""Terima kasih atas pertanyaan Anda: "{last_user_message.content}"
 
-I'm here to help with diabetes prevention and health questions! While I can provide general information about:
+Saya di sini untuk membantu dengan pertanyaan pencegahan diabetes dan kesehatan! Sementara saya dapat memberikan informasi umum tentang:
 
-• Blood sugar management
-• Weight and BMI
-• Exercise and physical activity
-• Diet and nutrition
-• Risk factors and prevention
+• Manajemen gula darah
+• Berat badan dan BMI
+• Olahraga dan aktivitas fisik
+• Diet dan nutrisi
+• Faktor risiko dan pencegahan
 
-Please remember that I provide general health information only. For specific medical advice or if you have concerns about your health, please consult with a healthcare professional.
+Harap ingat bahwa saya hanya memberikan informasi kesehatan umum. Untuk saran medis spesifik atau jika Anda memiliki kekhawatiran tentang kesehatan Anda, silakan konsultasikan dengan profesional kesehatan.
 
-Is there anything specific about diabetes prevention or your risk assessment you'd like to know more about?"""
+Apakah ada sesuatu yang spesifik tentang pencegahan diabetes atau penilaian risiko Anda yang ingin Anda ketahui lebih lanjut?"""
 
 
 # Global instance - will be initialized lazily

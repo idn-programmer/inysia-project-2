@@ -7,13 +7,16 @@ export default function HomePage() {
     <main className="min-h-dvh bg-background text-foreground">
       <header className="w-full border-b border-border">
         <div className="mx-auto max-w-5xl px-6 py-6 flex items-center justify-between">
-          <h1 className="text-balance text-3xl font-semibold text-primary">Diabetes Risk Predictor</h1>
+          <div>
+            <h1 className="text-balance text-3xl font-semibold text-primary">Sadar Diabetes</h1>
+            <p className="text-sm text-muted-foreground mt-1">Prediksi Risiko Diabetes</p>
+          </div>
           <nav className="flex items-center gap-3" aria-label="Primary">
             <Link href="/signup" className="rounded-lg bg-primary px-5 py-3 text-primary-foreground font-medium">
-              Sign Up
+              Daftar
             </Link>
             <Link href="/login" className="rounded-lg bg-accent px-5 py-3 text-accent-foreground font-medium">
-              Log In
+              Masuk
             </Link>
           </nav>
         </div>
@@ -21,25 +24,24 @@ export default function HomePage() {
 
       <section className="mx-auto max-w-5xl px-6 py-12 grid md:grid-cols-2 gap-10 items-center">
         <div>
-          <h2 className="text-balance text-4xl font-semibold mb-4">Easily check your diabetes risk</h2>
+          <h2 className="text-balance text-4xl font-semibold mb-4">Periksa risiko diabetes Anda dengan mudah</h2>
           <p className="text-pretty mb-6">
-            Easily check your diabetes risk and learn how to stay healthy. Our simple tool is designed for comfort and
-            clarity, with large text, warm colors, and clear steps.
+            Periksa risiko diabetes Anda dengan mudah dan pelajari cara menjaga kesehatan. Alat sederhana kami dirancang untuk kenyamanan dan kejelasan, dengan teks besar, warna hangat, dan langkah-langkah yang jelas.
           </p>
           <div className="flex gap-4">
             <Link
               href="/signup"
               className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold"
-              aria-label="Get started by signing up"
+              aria-label="Mulai dengan mendaftar"
             >
-              Get Started
+              Mulai
             </Link>
             <Link
               href="/login"
               className="rounded-lg border border-border px-6 py-4 hover:bg-muted transition"
-              aria-label="Log in to your account"
+              aria-label="Masuk ke akun Anda"
             >
-              I already have an account
+              Saya sudah memiliki akun
             </Link>
           </div>
         </div>
@@ -55,7 +57,7 @@ export default function HomePage() {
       </section>
       <footer className="mt-10 border-t border-border">
         <div className="mx-auto max-w-5xl px-6 py-8 text-center text-muted-foreground">
-          © {new Date().getFullYear()} Diabetes Risk Predictor
+          © {new Date().getFullYear()} Sadar Diabetes
         </div>
       </footer>
     </main>

@@ -27,7 +27,7 @@ export default function LoginPage() {
       await login(username, password)
       router.push("/dashboard")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed")
+      setError(err instanceof Error ? err.message : "Gagal masuk")
     } finally {
       setIsLoading(false)
     }
@@ -37,7 +37,7 @@ export default function LoginPage() {
     <div className="min-h-dvh bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-lg px-4 py-10">
-        <h1 className="text-3xl font-semibold mb-6">Log In</h1>
+        <h1 className="text-3xl font-semibold mb-6">Masuk</h1>
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
             {error}
@@ -45,7 +45,7 @@ export default function LoginPage() {
         )}
         <form onSubmit={onSubmit} className="grid gap-4">
           <InputField 
-            label="Username" 
+            label="Nama Pengguna" 
             name="username" 
             type="text" 
             value={username} 
@@ -53,7 +53,7 @@ export default function LoginPage() {
             required 
           />
           <InputField
-            label="Password"
+            label="Kata Sandi"
             name="password"
             type="password"
             value={password}
@@ -66,13 +66,13 @@ export default function LoginPage() {
             className="rounded-lg bg-primary px-6 py-4 text-primary-foreground font-semibold disabled:opacity-50"
             aria-label="Log in"
           >
-            {isLoading ? "Logging in..." : "Log In"}
+            {isLoading ? "Masuk..." : "Masuk"}
           </button>
         </form>
         <p className="mt-4">
-          Don&apos;t have an account?{" "}
+          Belum memiliki akun?{" "}
           <Link href="/signup" className="text-primary underline">
-            Sign up
+            Daftar
           </Link>
         </p>
       </main>

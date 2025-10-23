@@ -43,7 +43,7 @@ export default function HistoryPage() {
     <div className="min-h-dvh bg-background text-foreground">
       <Navbar />
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <h1 className="text-3xl font-semibold mb-6">Prediction History</h1>
+        <h1 className="text-3xl font-semibold mb-6">Riwayat Prediksi</h1>
 
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
@@ -53,15 +53,15 @@ export default function HistoryPage() {
 
         {authLoading ? (
           <div className="text-center py-8">
-            <p>Loading...</p>
+            <p>Memuat...</p>
           </div>
         ) : !isAuthenticated ? (
           <div className="text-center py-8">
-            <p>Please log in to view your prediction history.</p>
+            <p>Silakan masuk untuk melihat riwayat prediksi Anda.</p>
           </div>
         ) : isLoading ? (
           <div className="text-center py-8">
-            <p>Loading history...</p>
+            <p>Memuat riwayat...</p>
           </div>
         ) : (
           <>
@@ -86,15 +86,15 @@ export default function HistoryPage() {
           <table className="min-w-full bg-card">
             <thead className="bg-muted">
               <tr>
-                <th className="px-4 py-3 text-left">Date</th>
-                <th className="px-4 py-3 text-left">Result (%)</th>
+                <th className="px-4 py-3 text-left">Tanggal</th>
+                <th className="px-4 py-3 text-left">Hasil (%)</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 && (
                 <tr>
                   <td colSpan={2} className="px-4 py-4 text-muted-foreground">
-                    No history yet.
+                    Belum ada riwayat.
                   </td>
                 </tr>
               )}
