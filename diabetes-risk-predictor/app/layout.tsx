@@ -10,7 +10,7 @@ import { AccessibilityWrapper } from "@/components/accessibility-wrapper"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Sadar Diabetes - Prediksi Risiko Diabetes",
+  title: "Sadar",
   description: "Periksa risiko diabetes Anda dengan mudah dan pelajari cara menjaga kesehatan. Alat sederhana kami dirancang untuk kenyamanan dan kejelasan.",
   generator: "v0.app",
 }
