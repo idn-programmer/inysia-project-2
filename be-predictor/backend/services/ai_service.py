@@ -84,6 +84,14 @@ IMPORTANT GUIDELINES:
 - Keep responses concise but informative (2-3 paragraphs maximum)
 - Use a friendly, professional tone
 
+FORMATTING REQUIREMENTS:
+- DO NOT use bold text, asterisks (*), or any markdown formatting
+- Use simple bullet points with number for each point
+- Use clear, plain text formatting only
+- Use enter to make the formatting clear and 
+- Structure your response with clear points and sub-points
+- Avoid any special formatting characters
+
 You have access to the patient's diabetes risk assessment and can provide personalized recommendations based on their specific risk factors and health metrics."""
 
         if prediction_context:
@@ -103,6 +111,32 @@ You have access to the patient's diabetes risk assessment and can provide person
             formatted_messages.append(f"{role}: {msg.content}")
         
         return "\n".join(formatted_messages)
+    
+    def _clean_response(self, response_text):
+        """Clean up AI response by removing special tokens and formatting issues."""
+        # Remove special tokens
+        response_text = response_text.replace("", "")
+        response_text = response_text.replace("<|end_of_sentence|>", "")
+        response_text = response_text.replace("<|end_of_response|>", "")
+        response_text = response_text.replace("<|end|>", "")
+        response_text = response_text.replace("<｜begin▁of▁sentence｜>", "")
+        
+        # Remove bold formatting and markdown
+        response_text = response_text.replace("**", "")
+        response_text = response_text.replace("*", "")
+        response_text = response_text.replace("__", "")
+        response_text = response_text.replace("_", "")
+        
+        # Remove any trailing incomplete sentences
+        if response_text.endswith("og a sentence"):
+            response_text = response_text.replace("og a sentence", "")
+        
+        # Clean up any trailing incomplete words
+        words = response_text.split()
+        if words and len(words[-1]) < 3:  # Remove very short trailing words
+            words = words[:-1]
+        
+        return " ".join(words).strip()
     
     def generate_ai_response(
         self, 
@@ -184,6 +218,10 @@ You have access to the patient's diabetes risk assessment and can provide person
                 
                 if "choices" in result and len(result["choices"]) > 0:
                     ai_response = result["choices"][0]["message"]["content"]
+                    
+                    # Clean up the response - remove special tokens
+                    ai_response = self._clean_response(ai_response)
+                    
                     logger.info(f"🤖 AI Service - AI response generated: {len(ai_response)} characters")
                     return ai_response.strip()
                 else:

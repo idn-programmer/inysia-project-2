@@ -25,10 +25,10 @@ def test_openrouter_api():
     """Test OpenRouter API with DeepSeek model."""
     
     # Get API key from environment
-    api_key = os.getenv("DEEPSEEK_API_KEY")
+    api_key = os.getenv("OPENROUTER_API_KEY")
     
     if not api_key:
-        print("❌ ERROR: DEEPSEEK_API_KEY not found in environment variables")
+        print("❌ ERROR: OPENROUTER_API_KEY not found in environment variables")
         return False
     
     print(f"✅ API Key found: {api_key[:20]}...")
@@ -99,7 +99,7 @@ def test_openrouter_api():
 def test_alternative_models():
     """Test alternative free models if DeepSeek doesn't work."""
     
-    api_key = os.getenv("DEEPSEEK_API_KEY")
+    api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         print("❌ No API key available for testing")
         return
@@ -157,7 +157,7 @@ def test_alternative_models():
 def check_api_key_permissions():
     """Check API key permissions and available models."""
     
-    api_key = os.getenv("DEEPSEEK_API_KEY")
+    api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         print("❌ No API key available")
         return
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     # Check environment
     print("🔍 Environment Check:")
     print(f"   .env file exists: {env_path.exists()}")
-    print(f"   API Key loaded: {bool(os.getenv('DEEPSEEK_API_KEY'))}")
+    print(f"   API Key loaded: {bool(os.getenv('OPENROUTER_API_KEY'))}")
     print()
     
     # Test API key permissions

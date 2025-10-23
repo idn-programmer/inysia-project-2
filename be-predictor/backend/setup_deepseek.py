@@ -12,7 +12,7 @@ def setup_deepseek_api():
     print("=" * 50)
     
     # Your provided API key
-    api_key = "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"
+    api_key = "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"
     
     # Check if .env file exists
     env_file = ".env"
@@ -23,12 +23,12 @@ def setup_deepseek_api():
         with open(env_file, 'r') as f:
             content = f.read()
         
-        # Check if DEEPSEEK_API_KEY already exists
-        if "DEEPSEEK_API_KEY" in content:
-            print("⚠️  DEEPSEEK_API_KEY already exists in .env file")
+        # Check if OPENROUTER_API_KEY already exists
+        if "OPENROUTER_API_KEY" in content:
+            print("⚠️  OPENROUTER_API_KEY already exists in .env file")
             print("   Current content:")
             for line in content.split('\n'):
-                if 'DEEPSEEK_API_KEY' in line:
+                if 'OPENROUTER_API_KEY' in line:
                     print(f"   {line}")
             
             response = input("\nDo you want to update it? (y/n): ").lower().strip()
@@ -36,24 +36,24 @@ def setup_deepseek_api():
                 print("❌ Setup cancelled")
                 return
         
-        # Update or add DEEPSEEK_API_KEY
+        # Update or add OPENROUTER_API_KEY
         lines = content.split('\n')
         updated = False
         
         for i, line in enumerate(lines):
-            if line.startswith('DEEPSEEK_API_KEY'):
-                lines[i] = f"DEEPSEEK_API_KEY={api_key}"
+            if line.startswith('OPENROUTER_API_KEY'):
+                lines[i] = f"OPENROUTER_API_KEY={api_key}"
                 updated = True
                 break
         
         if not updated:
-            lines.append(f"DEEPSEEK_API_KEY={api_key}")
+            lines.append(f"OPENROUTER_API_KEY={api_key}")
         
         # Write back to file
         with open(env_file, 'w') as f:
             f.write('\n'.join(lines))
         
-        print(f"✅ Updated .env file with DeepSeek API key")
+        print(f"✅ Updated .env file with OpenRouter API key")
         
     else:
         print(f"📝 Creating new .env file")
@@ -68,8 +68,8 @@ SECRET_KEY=your-secret-key-change-this-in-production
 # CORS Configuration
 ALLOWED_ORIGINS=http://localhost:3000
 
-# AI Configuration
-DEEPSEEK_API_KEY={api_key}
+# AI Configuration - OpenRouter API
+OPENROUTER_API_KEY={api_key}
 
 # Logging
 LOG_LEVEL=info
@@ -81,16 +81,17 @@ MODEL_PATH=./backend/models/model.joblib
         with open(env_file, 'w') as f:
             f.write(env_content)
         
-        print(f"✅ Created .env file with DeepSeek API key")
+        print(f"✅ Created .env file with OpenRouter API key")
     
     print("\n🎉 Setup Complete!")
     print("=" * 50)
-    print("Your DeepSeek API key has been configured.")
+    print("Your OpenRouter API key has been configured.")
     print("You can now start the backend server:")
     print("  python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000")
-    print("\nThe AI chatbot will now use DeepSeek for follow-up questions!")
+    print("\nThe AI chatbot will now use DeepSeek via OpenRouter for follow-up questions!")
 
 if __name__ == "__main__":
     setup_deepseek_api()
+
 
 

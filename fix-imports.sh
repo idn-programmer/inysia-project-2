@@ -47,3 +47,4 @@ echo "Now you can either:"
 echo "1. Use the updated ecosystem.config.js with module imports"
 echo "2. Use the startup script with: ./start_backend.sh"
 echo "3. Or manually test with: cd /var/www/diabetes-predictor/be-predictor && python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000"
+
