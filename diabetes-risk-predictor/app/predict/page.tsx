@@ -35,19 +35,20 @@ export default function PredictPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const autoBmi = useMemo(() => {
-    const h = Number(form.heightCm)
-    const w = Number(form.weightKg)
-    if (!h || !w) return ""
-    const m = h / 100
-    return Number((w / (m * m)).toFixed(1))
-  }, [form.heightCm, form.weightKg])
+  // Remove auto-calculation - BMI will only be calculated when button is pressed
+  // const autoBmi = useMemo(() => {
+  //   const h = Number(form.heightCm)
+  //   const w = Number(form.weightKg)
+  //   if (!h || !w) return ""
+  //   const m = h / 100
+  //   return Number((w / (m * m)).toFixed(1))
+  // }, [form.heightCm, form.weightKg])
 
-  useEffect(() => {
-    if (autoBmi && form.bmi === "") {
-      setForm((f) => ({ ...f, bmi: autoBmi }))
-    }
-  }, [autoBmi, form.bmi])
+  // useEffect(() => {
+  //   if (autoBmi && form.bmi === "") {
+  //     setForm((f) => ({ ...f, bmi: autoBmi }))
+  //   }
+  // }, [autoBmi, form.bmi])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -64,7 +65,7 @@ export default function PredictPage() {
         glucose: form.glucose === "" ? undefined : Number(form.glucose),
         heightCm: form.heightCm === "" ? undefined : Number(form.heightCm),
         weightKg: form.weightKg === "" ? undefined : Number(form.weightKg),
-        bmi: form.bmi === "" ? (autoBmi === "" ? undefined : Number(autoBmi)) : Number(form.bmi),
+        bmi: form.bmi === "" ? undefined : Number(form.bmi),
         familyDiabetes: form.familyDiabetes,
         hypertensive: form.hypertensive,
         familyHypertension: form.familyHypertension,
@@ -110,6 +111,27 @@ export default function PredictPage() {
 
   const handleAskAI = () => {
     router.push('/chat')
+  }
+
+  const handleCalculateBMI = () => {
+    const height = Number(form.heightCm)
+    const weight = Number(form.weightKg)
+    
+    if (!height || !weight) {
+      setError("Silakan isi tinggi badan dan berat badan terlebih dahulu")
+      return
+    }
+    
+    if (height <= 0 || weight <= 0) {
+      setError("Tinggi badan dan berat badan harus lebih dari 0")
+      return
+    }
+    
+    const heightInMeters = height / 100
+    const bmi = Number((weight / (heightInMeters * heightInMeters)).toFixed(1))
+    
+    setForm((f) => ({ ...f, bmi }))
+    setError("") // Clear any previous errors
   }
 
   const resultColor = result == null ? "" : result.risk < 33 ? "text-green-600" : result.risk < 66 ? "text-yellow-600" : "text-red-600"
@@ -220,14 +242,24 @@ export default function PredictPage() {
               value={form.weightKg}
               onChange={(v) => setForm({ ...form, weightKg: v === "" ? "" : Number(v) })}
             />
-            <InputField
-              label="BMI"
-              name="bmi"
-              type="number"
-              value={form.bmi === "" ? String(autoBmi) : String(form.bmi)}
-              onChange={(v) => setForm({ ...form, bmi: v === "" ? "" : Number(v) })}
-              hint="Otomatis dihitung dari tinggi dan berat badan; Anda dapat menyesuaikan jika diperlukan."
-            />
+            <div className="space-y-2">
+              <InputField
+                label="BMI"
+                name="bmi"
+                type="number"
+                value={String(form.bmi)}
+                onChange={(v) => setForm({ ...form, bmi: v === "" ? "" : Number(v) })}
+                hint="Klik tombol 'Hitung BMI' untuk menghitung BMI berdasarkan tinggi dan berat badan yang telah diisi."
+              />
+              <button
+                type="button"
+                onClick={handleCalculateBMI}
+                disabled={!form.heightCm || !form.weightKg || Number(form.heightCm) <= 0 || Number(form.weightKg) <= 0}
+                className="w-full rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                🧮 Hitung BMI
+              </button>
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <ToggleField
