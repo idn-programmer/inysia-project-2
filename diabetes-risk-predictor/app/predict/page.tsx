@@ -136,7 +136,7 @@ export default function PredictPage() {
 
   const resultColor = result == null ? "" : result.risk < 33 ? "text-green-600" : result.risk < 66 ? "text-yellow-600" : "text-red-600"
 
-  // Prepare SHAP chart data
+  // Prepare SHAP chart data - Only show negative impact factors (risk increasing)
   const shapChartData = useMemo(() => {
     if (!result || !result.shap_values) return []
     
@@ -155,17 +155,17 @@ export default function PredictPage() {
       weightKg: "Berat Badan"
     }
     
-    // Convert SHAP values to chart data, filter out age, gender, and very small values
+    // Convert SHAP values to chart data, filter only POSITIVE values (risk increasing)
     const data = Object.entries(result.shap_values)
       .filter(([key]) => key !== 'age' && key !== 'gender') // Exclude age and gender
+      .filter(([key, value]) => Number(value) > 0.001) // Only positive values (risk increasing)
       .map(([key, value]) => ({
         name: featureLabels[key] || key,
         contribution: Number(value.toFixed(3)),
-        fill: value > 0 ? '#ef4444' : '#10b981' // red for positive, green for negative
+        fill: '#ef4444' // Red for all risk-increasing factors
       }))
-      .filter(item => Math.abs(item.contribution) > 0.001) // Filter negligible values
-      .sort((a, b) => Math.abs(b.contribution) - Math.abs(a.contribution))
-      .slice(0, 7) // Top 7 factors
+      .sort((a, b) => b.contribution - a.contribution) // Sort by contribution descending
+      .slice(0, 7) // Top 7 risk factors
     
     return data
   }, [result])
@@ -317,30 +317,41 @@ export default function PredictPage() {
               </p>
             </div>
 
-            {shapChartData.length > 0 && (
-              <div className="rounded-xl border border-border p-6 bg-card">
-                <h2 className="text-xl font-semibold mb-4">Analisis Faktor Risiko</h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Faktor-faktor ini paling berkontribusi pada skor risiko Anda. Bar merah meningkatkan risiko, bar hijau mengurangi risiko.
-                </p>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={shapChartData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" label={{ value: 'Kontribusi', position: 'insideBottom', offset: -5 }} />
-                    <YAxis type="category" dataKey="name" />
-                    <Tooltip 
-                      formatter={(value: number) => [`${value > 0 ? '+' : ''}${value.toFixed(3)}`, 'Dampak']}
-                      contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
-                    />
-                    <Bar dataKey="contribution" radius={[0, 8, 8, 0]}>
-                      {shapChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
+            <div className="rounded-xl border border-border p-6 bg-card">
+              <h2 className="text-xl font-semibold mb-4">Faktor Risiko yang Meningkatkan Diabetes</h2>
+              {shapChartData.length > 0 ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Diagram di bawah menunjukkan faktor-faktor yang paling berkontribusi meningkatkan risiko diabetes Anda. Semakin panjang bar, semakin besar pengaruhnya terhadap peningkatan risiko.
+                  </p>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={shapChartData} layout="vertical" margin={{ top: 5, right: 30, left: 100, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" label={{ value: 'Kontribusi Peningkatan Risiko', position: 'insideBottom', offset: -5 }} />
+                      <YAxis type="category" dataKey="name" />
+                      <Tooltip 
+                        formatter={(value: number) => [`+${value.toFixed(3)}`, 'Peningkatan Risiko']}
+                        contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.8)', border: 'none', borderRadius: '8px', color: '#fff' }}
+                      />
+                      <Bar dataKey="contribution" radius={[0, 8, 8, 0]}>
+                        {shapChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">🎉</div>
+                  <h3 className="text-lg font-semibold text-green-600 mb-2">Tidak Ada Faktor Risiko Signifikan</h3>
+                  <p className="text-muted-foreground">
+                    Berdasarkan data yang Anda masukkan, tidak ada faktor yang secara signifikan meningkatkan risiko diabetes Anda. 
+                    Ini adalah kabar baik! Tetap pertahankan gaya hidup sehat Anda.
+                  </p>
+                </div>
+              )}
+            </div>
 
             <button
               onClick={handleAskAI}
