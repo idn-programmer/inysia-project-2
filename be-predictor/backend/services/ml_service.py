@@ -20,6 +20,7 @@ class ModelArtifact:
     label_encoder: Any | None
     shap_explainer: Any | None
     feature_names: list[str]
+    optimal_threshold: float
     version: str
 
 
@@ -34,12 +35,13 @@ def load_model() -> ModelArtifact:
     settings = get_settings()
     model_dir = os.path.dirname(settings.model_path)
     
-    # Try to load Random Forest model and all artifacts
+    # Try to load LightGBM model and all artifacts
     model_path = os.path.join(model_dir, "random_forest_model.pkl")
     scaler_path = os.path.join(model_dir, "scaler.pkl")
     le_path = os.path.join(model_dir, "label_encoder.pkl")
     explainer_path = os.path.join(model_dir, "shap_explainer.pkl")
     feature_names_path = os.path.join(model_dir, "feature_names.json")
+    threshold_path = os.path.join(model_dir, "optimal_threshold.json")
     
     if os.path.exists(model_path):
         try:
@@ -53,15 +55,23 @@ def load_model() -> ModelArtifact:
                 with open(feature_names_path, 'r') as f:
                     feature_names = json.load(f)
             
+            # Load optimal threshold
+            optimal_threshold = 0.5  # Default threshold
+            if os.path.exists(threshold_path):
+                with open(threshold_path, 'r') as f:
+                    threshold_data = json.load(f)
+                    optimal_threshold = threshold_data.get("threshold", 0.5)
+            
             _artifact = ModelArtifact(
                 model=model,
                 scaler=scaler,
                 label_encoder=label_encoder,
                 shap_explainer=shap_explainer,
                 feature_names=feature_names,
-                version="v1.0.0"
+                optimal_threshold=optimal_threshold,
+                version="v2.0.0-lightgbm-optimized"
             )
-            print("✓ Loaded Random Forest model with SHAP explainer")
+            print(f"✓ Loaded LightGBM optimized model with threshold {optimal_threshold:.4f}")
             return _artifact
         except Exception as e:
             print(f"Error loading model: {e}")
@@ -73,6 +83,7 @@ def load_model() -> ModelArtifact:
         label_encoder=None,
         shap_explainer=None,
         feature_names=[],
+        optimal_threshold=0.5,
         version="fallback"
     )
     print("⚠ Using fallback predictor (model not trained yet)")
@@ -217,8 +228,13 @@ def predict(features: Dict[str, Any]) -> Tuple[int, str, Dict[str, float], Dict[
         # Prepare features
         df = _prepare_features(features, artifact)
         
-        # Get prediction
+        # Get prediction probability
         prob = artifact.model.predict_proba(df)[0][1]
+        
+        # Use optimal threshold for binary classification
+        binary_prediction = 1 if prob >= artifact.optimal_threshold else 0
+        
+        # Convert probability to risk percentage
         risk = int(round(prob * 100))
         
         # Calculate SHAP values
@@ -270,6 +286,10 @@ def predict(features: Dict[str, Any]) -> Tuple[int, str, Dict[str, float], Dict[
         
         # Get global feature importance
         global_importance = get_global_feature_importance(artifact)
+        
+        # Add threshold information to global importance for debugging
+        global_importance["_threshold_used"] = artifact.optimal_threshold
+        global_importance["_binary_prediction"] = binary_prediction
         
         return risk, artifact.version, shap_values, global_importance
         

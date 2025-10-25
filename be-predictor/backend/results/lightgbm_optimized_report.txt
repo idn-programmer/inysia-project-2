@@ -1,0 +1,16 @@
+============================================================
+LIGHTGBM OPTIMIZED REPORT - 2025-10-25 17:59:48
+============================================================
+
+Optimization Results:
+  Class Weight: 5
+  Optimal Threshold: 0.2967
+
+Performance Metrics:
+  recall: 0.5556
+  precision: 0.4167
+  f1_score: 0.4762
+  accuracy: 0.8972
+  roc_auc: 0.7976
+
+Training Time: 0.75s

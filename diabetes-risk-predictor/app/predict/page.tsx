@@ -360,6 +360,17 @@ export default function PredictPage() {
             >
               💬 Tanya AI Tentang Hasil Saya
             </button>
+
+            {/* Model Information */}
+            <div className="rounded-xl border border-border p-4 bg-muted/50">
+              <h3 className="text-sm font-semibold mb-2">ℹ️ Informasi Model</h3>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>• Model: LightGBM Optimized (F1 Score: 47.62%)</p>
+                <p>• Threshold: 0.2967 (Class Weight: 5)</p>
+                <p>• Recall: 55.56% | Precision: 41.67% | Accuracy: 89.72%</p>
+                <p>• Model menggunakan SMOTE untuk menangani ketidakseimbangan data</p>
+              </div>
+            </div>
           </div>
         )}
       </main>

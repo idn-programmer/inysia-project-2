@@ -46,6 +46,7 @@ class DeepSeekChatService:
             f"**Penilaian Risiko Pasien:**",
             f"- Skor Risiko Diabetes: {prediction_context.risk_score}%",
             f"- Tingkat Risiko: {'Tinggi' if prediction_context.risk_score >= 67 else 'Sedang' if prediction_context.risk_score >= 34 else 'Rendah'}",
+            f"- Model: LightGBM Optimized (F1: 47.62%, Recall: 55.56%, Precision: 41.67%)",
         ]
         
         # Add top risk factors from SHAP values
@@ -73,7 +74,7 @@ class DeepSeekChatService:
     
     def _create_system_prompt(self, prediction_context: Optional[PredictionContext]) -> str:
         """Create system prompt for the AI model."""
-        base_prompt = """Anda adalah asisten kesehatan AI yang membantu dan berpengetahuan luas, khusus dalam pencegahan dan manajemen diabetes. Anda memberikan informasi berbasis bukti dan saran praktis sambil mempertahankan disclaimer medis yang sesuai.
+        base_prompt = """Anda adalah asisten kesehatan AI yang membantu dan berpengetahuan luas, khusus dalam pencegahan dan manajemen diabetes. Anda menggunakan model LightGBM yang telah dioptimalkan dengan F1 score 47.62%, recall 55.56%, dan precision 41.67%. Anda memberikan informasi berbasis bukti dan saran praktis sambil mempertahankan disclaimer medis yang sesuai.
 
 PANDUAN PENTING:
 - Selalu ingatkan pengguna bahwa Anda memberikan informasi kesehatan umum, bukan saran medis
