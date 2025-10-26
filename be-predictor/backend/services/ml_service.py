@@ -234,8 +234,16 @@ def predict(features: Dict[str, Any]) -> Tuple[int, str, Dict[str, float], Dict[
         # Use optimal threshold for binary classification
         binary_prediction = 1 if prob >= artifact.optimal_threshold else 0
         
-        # Convert probability to risk percentage
-        risk = int(round(prob * 100))
+        # Convert probability to risk percentage with threshold scaling
+        if prob >= artifact.optimal_threshold:
+            # Scale from threshold to 100%
+            risk = int(round((prob - artifact.optimal_threshold) / (1 - artifact.optimal_threshold) * 100))
+        else:
+            # Scale from 0% to threshold
+            risk = int(round(prob / artifact.optimal_threshold * 50))  # Scale to 0-50%
+        
+        # Ensure risk is within 0-100 range
+        risk = max(0, min(100, risk))
         
         # Calculate SHAP values
         shap_values = {}
