@@ -56,14 +56,20 @@ export default function PredictPage() {
     setError("")
     
     try {
+      const glucoseMmol =
+        form.glucose === "" ? undefined : Number((Number(form.glucose) / 18).toFixed(2))
+
+      const heightMeters =
+        form.heightCm === "" ? undefined : Number((Number(form.heightCm) / 100).toFixed(2))
+
       const requestData = {
         age: form.age === "" ? undefined : Number(form.age),
         gender: form.gender,
         pulseRate: form.pulseRate === "" ? undefined : Number(form.pulseRate),
         sbp: form.sbp === "" ? undefined : Number(form.sbp),
         dbp: form.dbp === "" ? undefined : Number(form.dbp),
-        glucose: form.glucose === "" ? undefined : Number(form.glucose),
-        heightCm: form.heightCm === "" ? undefined : Number(form.heightCm),
+        glucose: glucoseMmol,
+        heightCm: heightMeters,
         weightKg: form.weightKg === "" ? undefined : Number(form.weightKg),
         bmi: form.bmi === "" ? undefined : Number(form.bmi),
         familyDiabetes: form.familyDiabetes,
@@ -87,7 +93,7 @@ export default function PredictPage() {
         risk_score: data.risk,
         shap_values: filteredShapValues,
         features: {
-          glucose: requestData.glucose,
+          glucose: glucoseMmol,
           bmi: requestData.bmi,
           sbp: requestData.sbp,
           dbp: requestData.dbp,
@@ -97,7 +103,7 @@ export default function PredictPage() {
           familyHypertension: requestData.familyHypertension,
           cardiovascular: requestData.cardiovascular,
           stroke: requestData.stroke,
-          heightCm: requestData.heightCm,
+          heightCm: heightMeters,
           weightKg: requestData.weightKg,
         }
       }
@@ -222,7 +228,7 @@ export default function PredictPage() {
               onChange={(v) => setForm({ ...form, dbp: v === "" ? "" : Number(v) })}
             />
             <InputField
-              label="Glukosa"
+              label="Glukosa (mg/dL)"
               name="glucose"
               type="number"
               value={form.glucose}

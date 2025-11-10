@@ -17,7 +17,7 @@ class Settings:
         print(f"🔧 Settings - OPENROUTER_API_KEY from env: {os.getenv('OPENROUTER_API_KEY', 'NOT_FOUND')}")
         
         self.database_url = os.getenv(
-            "DATABASE_URL", "postgresql+psycopg://postgres:richie@localhost:5432/Diabetes"
+            "DATABASE_URL", "sqlite:///./backend/db.sqlite3"
         )
         self.model_path = os.getenv("MODEL_PATH", "./backend/models/model.joblib")
         self.allowed_origins = [
