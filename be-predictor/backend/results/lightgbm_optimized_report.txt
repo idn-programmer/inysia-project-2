@@ -1,5 +1,5 @@
 ============================================================
-LIGHTGBM OPTIMIZED REPORT - 2025-10-25 22:26:14
+LIGHTGBM OPTIMIZED REPORT - 2025-11-10 22:56:11
 ============================================================
 
 Optimization Results:
@@ -13,4 +13,4 @@ Performance Metrics:
   accuracy: 0.8972
   roc_auc: 0.7976
 
-Training Time: 0.86s
+Training Time: 0.85s

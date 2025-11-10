@@ -69,7 +69,7 @@ def load_model() -> ModelArtifact:
                 shap_explainer=shap_explainer,
                 feature_names=feature_names,
                 optimal_threshold=optimal_threshold,
-                version="v2.0.0-lightgbm-optimized"
+                version="v2.0.1-lightgbm-optimized-20251110"
             )
             print(f"✓ Loaded LightGBM optimized model with threshold {optimal_threshold:.4f}")
             return _artifact

@@ -35,9 +35,11 @@ def _normalize(req: PredictRequest) -> dict:
     }
     # Compute BMI if not provided but height/weight exist
     if (req.bmi is None or req.bmi == 0) and req.heightCm and req.weightKg:
-        m = float(req.heightCm) / 100.0
-        if m > 0:
-            features["bmi"] = round(float(req.weightKg) / (m * m), 1)
+        height_val = float(req.heightCm)
+        if height_val > 3:  # assume value is in cm, convert to meters
+            height_val /= 100.0
+        if height_val > 0:
+            features["bmi"] = round(float(req.weightKg) / (height_val * height_val), 1)
     return features
 
 
