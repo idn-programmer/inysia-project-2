@@ -72,6 +72,12 @@ export default function PredictPage() {
       return
     }
 
+    if (form.age !== "" && Number(form.age) < 60) {
+      setError("Usia minimal 60 tahun")
+      setIsLoading(false)
+      return
+    }
+
     try {
       const glucoseMmol =
         form.glucose === "" ? undefined : Number((Number(form.glucose) / 18).toFixed(2))
@@ -210,9 +216,18 @@ export default function PredictPage() {
               name="age"
               type="number"
               value={form.age}
-              onChange={(v) => setForm({ ...form, age: v === "" ? "" : Number(v) })}
+              onChange={(v) => {
+                const num = v === "" ? "" : Number(v)
+                setForm({ ...form, age: num })
+                if (num !== "" && num < 60) {
+                  setError("Usia minimal 60 tahun")
+                } else {
+                  setError("")
+                }
+              }}
               required
-              min={1}
+              min={60}
+              hint="Usia minimal 60 tahun sesuai fokus model"
             />
             <SelectField
               label="Jenis Kelamin"
