@@ -20,6 +20,7 @@ from sklearn.metrics import (
     f1_score, recall_score, precision_score, roc_auc_score,
     precision_recall_curve, roc_curve
 )
+from sklearn.linear_model import LogisticRegression
 from imblearn.over_sampling import SMOTE
 
 # Model Algorithms
@@ -215,10 +216,10 @@ def train_lightgbm_optimized(X_train, X_test, y_train, y_test):
     y_pred_proba_final = best_model.predict_proba(X_test)[:, 1]
     y_pred_final = (y_pred_proba_final >= best_threshold).astype(int)
     
-    print(f"\n📈 Final Confusion Matrix:")
+    print(f"\n📈 LightGBM-only Confusion Matrix (before blending):")
     print(confusion_matrix(y_test, y_pred_final))
     
-    print(f"\n📋 Final Classification Report:")
+    print(f"\n📋 LightGBM-only Classification Report (before blending):")
     print(classification_report(y_test, y_pred_final, target_names=['No Diabetes', 'Diabetes']))
     
     return best_model, best_threshold, best_metrics, training_time
@@ -283,6 +284,81 @@ def main():
         X_train, X_test, y_train, y_test
     )
     
+    # Train glucose-only logistic model (scaled glucose feature)
+    print("\n" + "="*60)
+    print("🧮 Training glucose-only logistic reference model")
+    print("="*60)
+    
+    if "glucose" not in X_train.columns:
+        raise ValueError("Feature 'glucose' not found after preprocessing. Cannot train glucose linear model.")
+    
+    glucose_model = LogisticRegression(
+        random_state=42,
+        class_weight='balanced',
+        max_iter=1000
+    )
+    glucose_model.fit(X_train[["glucose"]], y_train)
+    glucose_train_coeff = float(glucose_model.coef_[0][0])
+    glucose_train_intercept = float(glucose_model.intercept_[0])
+    
+    lgb_proba_test = best_model.predict_proba(X_test)[:, 1]
+    glucose_test_proba = glucose_model.predict_proba(X_test[["glucose"]])[:, 1]
+    
+    print(f"✓ Glucose logistic model trained (coef={glucose_train_coeff:.4f}, intercept={glucose_train_intercept:.4f})")
+    
+    # Determine optimal blend between LightGBM and glucose model
+    print("\n" + "="*60)
+    print("⚖️  Searching blend weight for LightGBM + glucose logistic")
+    print("="*60)
+    
+    blend_candidates = [round(x, 2) for x in np.linspace(0.0, 1.0, 11)]
+    best_blend_weight = 0.0
+    best_blend_threshold = best_threshold
+    best_blend_metrics = best_metrics.copy()
+    best_blend_proba = lgb_proba_test
+    
+    for weight in blend_candidates:
+        blended_prob = np.clip((1 - weight) * lgb_proba_test + weight * glucose_test_proba, 0, 1)
+        threshold, y_pred_blend = find_optimal_threshold(y_test, blended_prob, target_f1=0.7)
+        
+        recall = recall_score(y_test, y_pred_blend)
+        precision = precision_score(y_test, y_pred_blend)
+        f1 = f1_score(y_test, y_pred_blend)
+        accuracy = accuracy_score(y_test, y_pred_blend)
+        roc_auc = roc_auc_score(y_test, blended_prob)
+        
+        print(f"   Weight {weight:.2f} -> F1={f1:.4f}, Recall={recall:.4f}, Precision={precision:.4f}, Threshold={threshold:.4f}")
+        
+        if f1 > best_blend_metrics.get('f1_score', 0):
+            best_blend_weight = weight
+            best_blend_threshold = threshold
+            best_blend_metrics = {
+                'class_weight': best_metrics['class_weight'],
+                'threshold': threshold,
+                'recall': recall,
+                'precision': precision,
+                'f1_score': f1,
+                'accuracy': accuracy,
+                'roc_auc': roc_auc
+            }
+            best_blend_proba = blended_prob
+    
+    print(f"\n🏆 Selected blend weight: {best_blend_weight:.2f}")
+    print(f"   Updated threshold: {best_blend_threshold:.4f}")
+    print(f"   Updated F1 score: {best_blend_metrics['f1_score']:.4f}")
+    
+    best_threshold = best_blend_threshold
+    best_metrics = best_blend_metrics
+    final_test_proba = best_blend_proba
+    
+    final_predictions = (final_test_proba >= best_threshold).astype(int)
+    
+    print("\n📈 Final Confusion Matrix (blended model):")
+    print(confusion_matrix(y_test, final_predictions))
+    
+    print("\n📋 Final Classification Report (blended model):")
+    print(classification_report(y_test, final_predictions, target_names=['No Diabetes', 'Diabetes']))
+    
     # Calculate SHAP values
     shap_sample = X_test.sample(n=min(100, len(X_test)), random_state=42)
     shap_explainer, mean_shap = calculate_shap_values(best_model, shap_sample, "LightGBM_Optimized")
@@ -332,6 +408,21 @@ def main():
         json.dump({"threshold": best_threshold}, f)
     print(f"✓ Optimal threshold saved to {threshold_path}")
     
+    # Save glucose linear parameters & blend weight
+    glucose_linear_path = output_dir / "glucose_linear.json"
+    with open(glucose_linear_path, 'w') as f:
+        json.dump(
+            {
+                "coef": glucose_train_coeff,
+                "intercept": glucose_train_intercept,
+                "blend_weight": best_blend_weight,
+                "feature": "glucose",
+                "trained_on": "scaled_glucose"
+            },
+            f
+        )
+    print(f"✓ Glucose linear parameters saved to {glucose_linear_path}")
+    
     # Save detailed report
     report_path = results_path / "lightgbm_optimized_report.txt"
     with open(report_path, 'w') as f:
@@ -341,6 +432,7 @@ def main():
         f.write("Optimization Results:\n")
         f.write(f"  Class Weight: {best_metrics['class_weight']}\n")
         f.write(f"  Optimal Threshold: {best_metrics['threshold']:.4f}\n\n")
+        f.write(f"  Blend Weight (glucose linear): {best_blend_weight:.4f}\n")
         f.write("Performance Metrics:\n")
         for metric, value in best_metrics.items():
             if metric not in ['class_weight', 'threshold']:

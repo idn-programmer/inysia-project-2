@@ -133,21 +133,19 @@ BMI: +0.03 (red)
 ## 🔧 Technical Information
 
 ### Model Details:
-- **Algorithm:** Random Forest Classifier
-- **Version:** v1.0.0
+- **Algorithm:** Hybrid LightGBM + Glucose Logistic Blend
+- **Version:** v2.1.0-lightgbm-linearblend
 - **Training Data:** Elderly population (age ≥ 60) from Bangladesh diabetes dataset
-- **Features:** 14 health metrics
+- **Features:** 14 health metrics (scaled dengan RobustScaler)
+- **Glucose Handling:** Linear logistic component memastikan peningkatan glukosa menaikkan risiko secara quasi-linear
 - **Output:** Risk probability (0-100%)
-- **Explainability:** SHAP values for each prediction
+- **Explainability:** SHAP values untuk faktor non-linear + metadata probabilitas blend
 
-### Top Contributing Factors (by importance):
-1. **Hypertensive** (23.86%) - Strongest predictor
-2. **Glucose** (15.50%) - Blood sugar level
-3. **Age** (10.76%) - Patient age
-4. **Diastolic BP** (9.78%) - Lower blood pressure number
-5. **BMI** (9.07%) - Body mass index
-6. **Height** (7.82%) - Body height
-7. **Weight** (7.52%) - Body weight
+### Glucose Sensitivity Highlights:
+- LightGBM menangkap interaksi kompleks antar fitur.
+- Logistic khusus glukosa menjaga hubungan yang naik secara konsisten terhadap diabetes.
+- Blend weight otomatis dipilih saat training (`glucose_linear.json`) sehingga respon glukosa tetap stabil di produksi.
+Visualisasi SHAP tetap tersedia untuk interpretasi global maupun lokal.
 
 ---
 

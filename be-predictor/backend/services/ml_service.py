@@ -22,6 +22,7 @@ class ModelArtifact:
     feature_names: list[str]
     optimal_threshold: float
     version: str
+    glucose_linear: Dict[str, float] | None = None
 
 
 _artifact: ModelArtifact | None = None
@@ -42,6 +43,7 @@ def load_model() -> ModelArtifact:
     explainer_path = os.path.join(model_dir, "shap_explainer.pkl")
     feature_names_path = os.path.join(model_dir, "feature_names.json")
     threshold_path = os.path.join(model_dir, "optimal_threshold.json")
+    glucose_linear_path = os.path.join(model_dir, "glucose_linear.json")
     
     if os.path.exists(model_path):
         try:
@@ -62,6 +64,14 @@ def load_model() -> ModelArtifact:
                     threshold_data = json.load(f)
                     optimal_threshold = threshold_data.get("threshold", 0.5)
             
+            glucose_linear = None
+            if os.path.exists(glucose_linear_path):
+                with open(glucose_linear_path, 'r') as f:
+                    try:
+                        glucose_linear = json.load(f)
+                    except json.JSONDecodeError:
+                        glucose_linear = None
+            
             _artifact = ModelArtifact(
                 model=model,
                 scaler=scaler,
@@ -69,9 +79,12 @@ def load_model() -> ModelArtifact:
                 shap_explainer=shap_explainer,
                 feature_names=feature_names,
                 optimal_threshold=optimal_threshold,
-                version="v2.0.1-lightgbm-optimized-20251110"
+                version="v2.1.0-lightgbm-linearblend",
+                glucose_linear=glucose_linear
             )
             print(f"✓ Loaded LightGBM optimized model with threshold {optimal_threshold:.4f}")
+            if glucose_linear:
+                print(f"✓ Glucose linear blend loaded (weight={glucose_linear.get('blend_weight', 0.0):.2f})")
             return _artifact
         except Exception as e:
             print(f"Error loading model: {e}")
@@ -84,7 +97,8 @@ def load_model() -> ModelArtifact:
         shap_explainer=None,
         feature_names=[],
         optimal_threshold=0.5,
-        version="fallback"
+        version="fallback",
+        glucose_linear=None
     )
     print("⚠ Using fallback predictor (model not trained yet)")
     return _artifact
@@ -228,8 +242,22 @@ def predict(features: Dict[str, Any]) -> Tuple[int, str, Dict[str, float], Dict[
         # Prepare features
         df = _prepare_features(features, artifact)
         
-        # Get prediction probability
-        prob = artifact.model.predict_proba(df)[0][1]
+        # Get prediction probability from LightGBM
+        lgb_prob = float(artifact.model.predict_proba(df)[0][1])
+        prob = lgb_prob
+        
+        # Blend with glucose linear model if available
+        linear_prob = None
+        if artifact.glucose_linear and 'glucose' in df.columns:
+            coef = artifact.glucose_linear.get("coef")
+            intercept = artifact.glucose_linear.get("intercept")
+            blend_weight = artifact.glucose_linear.get("blend_weight", 0.0)
+            glucose_value = float(df['glucose'].iloc[0])
+            
+            if coef is not None and intercept is not None:
+                linear_logit = (coef * glucose_value) + intercept
+                linear_prob = 1 / (1 + np.exp(-linear_logit))
+                prob = float(np.clip((1 - blend_weight) * lgb_prob + blend_weight * linear_prob, 0.0, 1.0))
         
         # Use optimal threshold for binary classification
         binary_prediction = 1 if prob >= artifact.optimal_threshold else 0
@@ -298,6 +326,10 @@ def predict(features: Dict[str, Any]) -> Tuple[int, str, Dict[str, float], Dict[
         # Add threshold information to global importance for debugging
         global_importance["_threshold_used"] = artifact.optimal_threshold
         global_importance["_binary_prediction"] = binary_prediction
+        global_importance["_lightgbm_prob"] = lgb_prob
+        if artifact.glucose_linear:
+            global_importance["_glucose_linear_prob"] = linear_prob if linear_prob is not None else None
+            global_importance["_blend_weight"] = artifact.glucose_linear.get("blend_weight", 0.0)
         
         return risk, artifact.version, shap_values, global_importance
         

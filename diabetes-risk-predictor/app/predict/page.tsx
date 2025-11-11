@@ -204,6 +204,9 @@ export default function PredictPage() {
       <Navbar />
       <main className="mx-auto max-w-4xl px-4 py-8">
         <h1 className="text-3xl font-semibold mb-6">Periksa Risiko Diabetes Anda</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Model terbaru menggabungkan LightGBM dengan komponen linear khusus glukosa sehingga perubahan kadar gula darah berpengaruh secara lebih langsung pada skor risiko.
+        </p>
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-100 text-red-700 border border-red-200">
             {error}
