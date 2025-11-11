@@ -55,7 +55,7 @@ export default function PredictPage() {
     setIsLoading(true)
     setError("")
     
-    const negativeField = [
+    const invalidField = [
       { value: form.age, label: "Usia" },
       { value: form.pulseRate, label: "Denyut Nadi" },
       { value: form.sbp, label: "Tekanan Darah Sistolik" },
@@ -64,10 +64,10 @@ export default function PredictPage() {
       { value: form.heightCm, label: "Tinggi Badan" },
       { value: form.weightKg, label: "Berat Badan" },
       { value: form.bmi, label: "BMI" },
-    ].find((field) => field.value !== "" && Number(field.value) < 0)
+    ].find((field) => field.value !== "" && Number(field.value) <= 0)
 
-    if (negativeField) {
-      setError(`${negativeField.label} tidak boleh bernilai negatif`)
+    if (invalidField) {
+      setError(`${invalidField.label} harus lebih besar dari 0`)
       setIsLoading(false)
       return
     }
@@ -212,7 +212,7 @@ export default function PredictPage() {
               value={form.age}
               onChange={(v) => setForm({ ...form, age: v === "" ? "" : Number(v) })}
               required
-              min={0}
+              min={1}
             />
             <SelectField
               label="Jenis Kelamin"
@@ -230,7 +230,7 @@ export default function PredictPage() {
               type="number"
               value={form.pulseRate}
               onChange={(v) => setForm({ ...form, pulseRate: v === "" ? "" : Number(v) })}
-              min={0}
+              min={1}
             />
             <InputField
               label="Tekanan Darah Sistolik"
@@ -238,7 +238,7 @@ export default function PredictPage() {
               type="number"
               value={form.sbp}
               onChange={(v) => setForm({ ...form, sbp: v === "" ? "" : Number(v) })}
-              min={0}
+              min={1}
             />
             <InputField
               label="Tekanan Darah Diastolik"
@@ -246,7 +246,7 @@ export default function PredictPage() {
               type="number"
               value={form.dbp}
               onChange={(v) => setForm({ ...form, dbp: v === "" ? "" : Number(v) })}
-              min={0}
+              min={1}
             />
             <InputField
               label="Glukosa (mg/dL)"
@@ -254,7 +254,7 @@ export default function PredictPage() {
               type="number"
               value={form.glucose}
               onChange={(v) => setForm({ ...form, glucose: v === "" ? "" : Number(v) })}
-              min={0}
+              min={0.1}
             />
             <InputField
               label="Tinggi Badan (cm)"
@@ -262,7 +262,7 @@ export default function PredictPage() {
               type="number"
               value={form.heightCm}
               onChange={(v) => setForm({ ...form, heightCm: v === "" ? "" : Number(v) })}
-              min={0}
+              min={0.1}
             />
             <InputField
               label="Berat Badan (kg)"
@@ -270,7 +270,7 @@ export default function PredictPage() {
               type="number"
               value={form.weightKg}
               onChange={(v) => setForm({ ...form, weightKg: v === "" ? "" : Number(v) })}
-              min={0}
+              min={0.1}
             />
             <div className="space-y-2">
               <InputField
@@ -280,7 +280,7 @@ export default function PredictPage() {
                 value={String(form.bmi)}
                 onChange={(v) => setForm({ ...form, bmi: v === "" ? "" : Number(v) })}
                 hint="Klik tombol 'Hitung BMI' untuk menghitung BMI berdasarkan tinggi dan berat badan yang telah diisi."
-                min={0}
+                min={0.1}
               />
               <button
                 type="button"
