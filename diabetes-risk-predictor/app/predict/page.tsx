@@ -222,11 +222,12 @@ export default function PredictPage() {
                 if (num !== "" && num < 60) {
                   setError("Usia minimal 60 tahun")
                 } else {
-                  setError("")
+                  setError((prev) => (prev === "Usia minimal 60 tahun" ? "" : prev))
                 }
               }}
               required
               min={60}
+              step={1}
               hint="Usia minimal 60 tahun sesuai fokus model"
             />
             <SelectField
@@ -246,6 +247,7 @@ export default function PredictPage() {
               value={form.pulseRate}
               onChange={(v) => setForm({ ...form, pulseRate: v === "" ? "" : Number(v) })}
               min={1}
+              step={1}
             />
             <InputField
               label="Tekanan Darah Sistolik"
@@ -254,6 +256,7 @@ export default function PredictPage() {
               value={form.sbp}
               onChange={(v) => setForm({ ...form, sbp: v === "" ? "" : Number(v) })}
               min={1}
+              step={1}
             />
             <InputField
               label="Tekanan Darah Diastolik"
@@ -262,6 +265,7 @@ export default function PredictPage() {
               value={form.dbp}
               onChange={(v) => setForm({ ...form, dbp: v === "" ? "" : Number(v) })}
               min={1}
+              step={1}
             />
             <InputField
               label="Glukosa (mg/dL)"
@@ -269,7 +273,8 @@ export default function PredictPage() {
               type="number"
               value={form.glucose}
               onChange={(v) => setForm({ ...form, glucose: v === "" ? "" : Number(v) })}
-              min={0.1}
+              min={1}
+              step={1}
             />
             <InputField
               label="Tinggi Badan (cm)"
@@ -277,7 +282,8 @@ export default function PredictPage() {
               type="number"
               value={form.heightCm}
               onChange={(v) => setForm({ ...form, heightCm: v === "" ? "" : Number(v) })}
-              min={0.1}
+              min={1}
+              step={1}
             />
             <InputField
               label="Berat Badan (kg)"
@@ -285,7 +291,8 @@ export default function PredictPage() {
               type="number"
               value={form.weightKg}
               onChange={(v) => setForm({ ...form, weightKg: v === "" ? "" : Number(v) })}
-              min={0.1}
+              min={1}
+              step={1}
             />
             <div className="space-y-2">
               <InputField
@@ -295,7 +302,8 @@ export default function PredictPage() {
                 value={String(form.bmi)}
                 onChange={(v) => setForm({ ...form, bmi: v === "" ? "" : Number(v) })}
                 hint="Klik tombol 'Hitung BMI' untuk menghitung BMI berdasarkan tinggi dan berat badan yang telah diisi."
-                min={0.1}
+                min={1}
+                step="any"
               />
               <button
                 type="button"
